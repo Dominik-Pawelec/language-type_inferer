@@ -38,7 +38,7 @@ let rec expr_to_string expr =
 ;;
 let rec type_to_string typ =
   match typ with
-  | TVoid -> Printf.sprintf "∅"
+  | TVoid -> Printf.sprintf "void"
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
   | TVar x -> Printf.sprintf "a%d" x

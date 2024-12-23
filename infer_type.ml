@@ -9,6 +9,7 @@ let new_type ()=
 module M = Map.Make(String)
 type env = typ M.t
 
+
 let type_of = function
   | AVoid -> TVoid
   | AInt _ -> TInt
@@ -75,6 +76,8 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let f_constrains = collect_constrains [f] constrains_ls in
     collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
 ;;
+
+
 
 let infer expr =
   type_name := 0;
