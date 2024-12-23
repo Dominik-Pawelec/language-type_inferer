@@ -10,17 +10,20 @@ module M = Map.Make(String)
 type env = typ M.t
 
 let type_of = function
+  | AVoid -> TVoid
   | AInt _ -> TInt
   | ABool _ -> TBool
   | AVar(_, t) -> t
   | AFun(_, _, t) -> t
   | AApp(_, _, t) -> t
   | ALet(_,_,_,t) -> t
+  | AIf(_,_,_,t) -> t
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
   match expr with
+  | Void -> AVoid
   | Int nr -> AInt(nr, TInt)
   | Bool b -> ABool(b,TBool)
   | Var id -> 
@@ -44,12 +47,14 @@ let annotate expr =
     let a = type_of avalue in
     Hashtbl.add h_table id a;
     ALet(id, avalue, aexpr, type_of aexpr)
+  | If(e, t, f) -> AIf(annotate_rec e env, annotate_rec t env, annotate_rec f env, (new_type ()))
   in annotate_rec expr (M.empty) 
 ;;
 
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
   | [] -> constrains_ls
+  | AVoid :: rest -> collect_constrains rest constrains_ls
   | AInt _ :: rest -> collect_constrains rest constrains_ls
   | ABool _ :: rest -> collect_constrains rest constrains_ls
   | AVar (_,_)::rest -> collect_constrains rest constrains_ls
@@ -63,9 +68,16 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let constrains_value = collect_constrains [value] constrains_ls in
     let constrains_expr = collect_constrains [expr] ((var_id, value_typ)::constrains_ls) in
     collect_constrains rest (constrains_value @ constrains_expr @ constrains_ls)
+  | AIf(e, t, f, typ)::rest ->
+    let e_typ = type_of e in
+    let t_typ = type_of t and f_typ = type_of f in
+    let t_constrains = collect_constrains [t] constrains_ls in
+    let f_constrains = collect_constrains [f] constrains_ls in
+    collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
 ;;
 
 let infer expr =
+  type_name := 0;
   let annotated_expr = annotate expr
   in let constrains = collect_constrains [annotated_expr] []
   in let temp = Unifier.unify constrains

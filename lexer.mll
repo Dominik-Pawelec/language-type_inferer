@@ -11,6 +11,8 @@ rule token =
     parse
     | '\n' {Lexing.new_line lexbuf; token lexbuf}
     | whitespace {token lexbuf}
+    | "∅"{VOID}
+    | "void"{VOID}
     | "(" {LPAREN}
     | ")" {RPAREN}
     | "fun" {FUN} 
@@ -18,6 +20,9 @@ rule token =
     | "let" {LET}
     | ":=" {ASSIGN}
     | "in" {IN}
+    | "if" {IF}
+    | "then" {THEN}
+    | "else" {ELSE}
     | "true" {TRUE}
     | "false" {FALSE}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}

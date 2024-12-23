@@ -12,7 +12,9 @@
 %token LPAREN RPAREN
 %token FUN ARROW
 %token LET ASSIGN IN
+%token IF THEN ELSE
 %token TRUE FALSE
+%token VOID
 %token EOF
 
 %start <expr> prog
@@ -31,6 +33,7 @@ idents:
 mixfix:
     | LET; x = IDENT; ASSIGN; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
+    | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
     | x = expr { x }
     ;
 expr:
@@ -41,6 +44,7 @@ app:
     | e = base { e }
     ;
 base:
+    | VOID { Void }
     | nr = INT { Int nr }
     | TRUE { Bool true }
     | FALSE { Bool false }
