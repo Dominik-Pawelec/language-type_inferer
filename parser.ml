@@ -1,18 +1,16 @@
+open Values
+
 module type Values = sig
   type v
-  val assign_parsed : string -> v
+  val assign_parsed : string -> bool -> v
 end
-
-(*module SimpleTV = struct
-  type v = string
-  let assign_parsed str: v = str
-end*)
 
 module Sexpr (T : Values) = struct
   type elem = T.v
-  type t =
-    | ATOM of elem
-    | LIST of t list
+  type t = 
+  | ATOM of elem
+  | LIST of t list
+
   type token =
     | ATOMtoken of string
     | LEFTPAR
@@ -41,11 +39,11 @@ module Sexpr (T : Values) = struct
       in tokenize_rec input
 
   let parse list_tokens = 
-    let rec parse_sublist sublist_tokens depth =
+    let rec parse_sublist sublist_tokens depth fst_token_of_group =
       match sublist_tokens with
       | [] when depth <> 0 -> failwith "PARSER ERROR: Mismatch of right parenthesis"
-      | ATOMtoken str :: xs -> ATOM (T.assign_parsed str) :: parse_sublist xs depth
-      | LEFTPAR :: xs -> LIST (parse_sublist xs (depth + 1)) :: parse_sublist (get_list_after xs) depth
+      | ATOMtoken str :: xs -> ATOM (T.assign_parsed str fst_token_of_group) :: parse_sublist xs depth false
+      | LEFTPAR :: xs -> LIST (parse_sublist xs (depth + 1) true) :: parse_sublist (get_list_after xs) depth false
       | _ -> []
     and get_list_after xs =
       let rec get_list_after_rec xs depth =
@@ -55,5 +53,5 @@ module Sexpr (T : Values) = struct
         | ATOMtoken _ :: xs -> get_list_after_rec xs depth
         | _ -> failwith "PARSER ERROR: Mismatch of right parenthesis"
       in get_list_after_rec xs 0
-    in parse_sublist list_tokens 0
+    in parse_sublist list_tokens 0 true (*this might be funny*)
 end
