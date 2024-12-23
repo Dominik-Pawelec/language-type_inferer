@@ -10,6 +10,8 @@ module M = Map.Make(String)
 type env = typ M.t
 
 let type_of = function
+  | AInt _ -> TInt
+  | ABool _ -> TBool
   | AVar(_, t) -> t
   | AFun(_, _, t) -> t
   | AApp(_, _, t) -> t
@@ -18,6 +20,8 @@ let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
   match expr with
+  | Int nr -> AInt(nr, TInt)
+  | Bool b -> ABool(b,TBool)
   | Var id -> 
     (match M.find_opt id env with
     | Some a -> AVar(id, a)
@@ -38,6 +42,8 @@ let annotate expr =
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
   | [] -> constrains_ls
+  | AInt _ :: rest -> collect_constrains rest constrains_ls
+  | ABool _ :: rest -> collect_constrains rest constrains_ls
   | AVar (_,_)::rest -> collect_constrains rest constrains_ls
   | AFun (_, aexpr', _)::rest -> collect_constrains (aexpr' :: rest) constrains_ls
   | AApp (aexpr1, aexpr2, t)::rest -> 
