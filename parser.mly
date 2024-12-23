@@ -8,35 +8,42 @@
 %}
 
 %token <int> INT
-%token <string> IDENTIFIER
+%token <string> IDENT
 %token LPAREN RPAREN
 %token FUN ARROW
 %token LET ASSIGN IN
 %token TRUE FALSE
 %token EOF
 
-%start <Ast.expr> prog
+%start <expr> prog
 
 %%
 
 prog:
-    | e = mixfix; EOF {e}
+    | e = mixfix EOF { e }
     ;
 
 idents:
-    | x = IDENT; xs = idents {x :: xs}
-    | x = IDENTIFIER {[x]}
-    ;
-mixfix:
-    | LET; x = IDENT; ASSIGN; e1 = mixfix; IN; e2 = mixfix {Let(x,e1,e2)}
-    | FUN; xs = idents; ARROW; e = mixfix {create_function xs e}
-    | x = base {x}
+    | x = IDENT; xs = idents { x :: xs }
+    | x = IDENT { [x] }
     ;
 
+mixfix:
+    | LET; x = IDENT; ASSIGN; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
+    | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
+    | x = expr { x }
+    ;
+expr:
+    | e = app { e }
+    ;
+app:
+    | e1 = app; e2 = base { App(e1, e2) }
+    | e = base { e }
+    ;
 base:
-    | LPAREN; e = mixfix; RPAREN {e}
-    | nr = INT {Int nr}
-    | x = TRUE {Bool true}
-    | x = FALSE {Bool false}
-    | x = IDENT {Var x}
+    | nr = INT { Int nr }
+    | TRUE { Bool true }
+    | FALSE { Bool false }
+    | x = IDENT { Var x } 
+    | LPAREN; e = mixfix; RPAREN { e }
     ;

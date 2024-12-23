@@ -57,7 +57,7 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AApp (aexpr1, aexpr2, t)::rest -> 
     let (t1, t2) = (type_of aexpr1, type_of aexpr2) in
   collect_constrains (aexpr1 :: aexpr2 :: rest) ( (t1, TFun(t2, t))::constrains_ls)
-  | ALet(id, value, expr, typ)::rest -> 
+  | ALet(id, value, expr, _)::rest -> 
     let var_id = type_of (annotate (Var id)) in
     let value_typ = type_of value in
     let constrains_value = collect_constrains [value] constrains_ls in

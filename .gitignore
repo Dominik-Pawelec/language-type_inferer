@@ -1,3 +1,5 @@
-type_system.opam
+/!TODO.txt
 _build/
-.gitignore
+/.gitignore
+/parser_old.ml
+/parser_old.mli

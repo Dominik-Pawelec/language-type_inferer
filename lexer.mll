@@ -2,8 +2,8 @@
     open Parser
 }
 let whitespace = [' ' '\t']+
-let digits = ['0'-'9']
-let signs = [^' ''\t''\n']
+let digit = ['0'-'9']
+let signs = [^' ''\t''\n''('')']
 let integer = '-'? digit+
 let identifier = signs+
 
@@ -21,5 +21,5 @@ rule token =
     | "true" {TRUE}
     | "false" {FALSE}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
-    | identifier {IDENTIFIER (Lexing.lexeme lexbuf)}
+    | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}
