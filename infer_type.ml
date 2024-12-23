@@ -15,6 +15,7 @@ let type_of = function
   | AVar(_, t) -> t
   | AFun(_, _, t) -> t
   | AApp(_, _, t) -> t
+  | ALet(_,_,_,t) -> t
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
@@ -36,6 +37,13 @@ let annotate expr =
     let t_fun = TFun(a, type_of aexpr) in
       AFun(id, aexpr, t_fun)
   | App (expr1, expr2) -> AApp(annotate_rec expr1 env, annotate_rec expr2 env, (new_type ()))
+  | Let(id, value, expr) -> 
+    let avalue = annotate_rec value env in
+    let value_typ = type_of avalue in
+    let aexpr = annotate_rec expr (M.add id value_typ env) in
+    let a = type_of avalue in
+    Hashtbl.add h_table id a;
+    ALet(id, avalue, aexpr, type_of aexpr)
   in annotate_rec expr (M.empty) 
 ;;
 
@@ -49,6 +57,12 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AApp (aexpr1, aexpr2, t)::rest -> 
     let (t1, t2) = (type_of aexpr1, type_of aexpr2) in
   collect_constrains (aexpr1 :: aexpr2 :: rest) ( (t1, TFun(t2, t))::constrains_ls)
+  | ALet(id, value, expr, typ)::rest -> 
+    let var_id = type_of (annotate (Var id)) in
+    let value_typ = type_of value in
+    let constrains_value = collect_constrains [value] constrains_ls in
+    let constrains_expr = collect_constrains [expr] ((var_id, value_typ)::constrains_ls) in
+    collect_constrains rest (constrains_value @ constrains_expr @ constrains_ls)
 ;;
 
 let infer expr =

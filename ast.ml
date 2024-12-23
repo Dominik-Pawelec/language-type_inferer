@@ -5,6 +5,7 @@ type expr =
   | Var of id
   | Fun of id * expr
   | App of expr * expr
+  | Let of id * expr * expr
 
 type typ =
   | TInt | TBool
@@ -17,6 +18,7 @@ type annotated_expr = (* TODO: Make protectedso that AVar can only have type var
   | AVar of id * typ
   | AFun of id * annotated_expr * typ
   | AApp of annotated_expr * annotated_expr * typ
+  | ALet of id * annotated_expr * annotated_expr * typ
 
 let rec expr_to_string expr =
   match expr with
@@ -25,6 +27,8 @@ let rec expr_to_string expr =
   | Var id -> Printf.sprintf "%s" id
   | Fun(id, expr') -> Printf.sprintf "%s -> %s" id (expr_to_string expr')
   | App(func, arg) -> Printf.sprintf "%s %s" (expr_to_string func) (expr_to_string arg)
+  | Let(id, expr1, expr2) -> 
+    Printf.sprintf "let %s := %s in %s" id (expr_to_string expr1) (expr_to_string expr2)
 ;;
 let rec type_to_string typ =
   match typ with
