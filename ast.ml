@@ -54,5 +54,5 @@ let rec type_to_string typ =
   | TVar x -> Printf.sprintf "a%d" x
   | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (type_to_string x)
   | TFun (f, x) -> Printf.sprintf "%s -> %s" (type_to_string f) (type_to_string x) 
-  | TPair(a, b) -> Printf.sprintf "%s * %s" (type_to_string a) (type_to_string b)
+  | TPair(a, b) -> Printf.sprintf "(%s * %s)" (type_to_string a) (type_to_string b)
 
