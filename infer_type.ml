@@ -11,7 +11,7 @@ type env = typ M.t
 
 
 let rec type_of = function
-  | AVoid -> TVoid
+  | AUnit -> TUnit
   | AInt _ -> TInt
   | ABool _ -> TBool
   | AVar(_, t) -> t
@@ -27,7 +27,7 @@ let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
   match expr with
-  | Void -> AVoid
+  | Unit -> AUnit
   | Int nr -> AInt(nr, TInt)
   | Bool b -> ABool(b,TBool)
   | Var id -> 
@@ -65,7 +65,7 @@ let annotate expr =
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
   | [] -> constrains_ls
-  | AVoid :: rest -> collect_constrains rest constrains_ls
+  | AUnit :: rest -> collect_constrains rest constrains_ls
   | AInt _ :: rest -> collect_constrains rest constrains_ls
   | ABool _ :: rest -> collect_constrains rest constrains_ls
   | AVar (_,_)::rest -> collect_constrains rest constrains_ls
@@ -85,7 +85,7 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let t_constrains = collect_constrains [t] constrains_ls in
     let f_constrains = collect_constrains [f] constrains_ls in
     collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
-  | APair(_,_)::rest -> collect_constrains rest constrains_ls
+  | APair(a, b)::rest -> collect_constrains (a::b::rest) constrains_ls
   | ALeft(TFun(TPair(x, _), out))::rest ->  
     collect_constrains rest ((x, out)::constrains_ls) 
   | ARight(TFun(TPair(_, y), out))::rest ->  

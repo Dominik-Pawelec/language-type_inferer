@@ -20,7 +20,7 @@
 
 %start <expr> prog
 
-%right COMMA
+%left COMMA
 
 %%
 
@@ -35,12 +35,12 @@ idents:
 
 mixfix:
     | LET; x = IDENT; ASSIGN; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
+    | e1 = mixfix; COMMA; e2 = mixfix {Pair(e1, e2)}
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
     | x = expr { x }
     ;
 expr:
-    | e1 = expr; COMMA; e2 = expr {Pair(e1, e2)}
     | e = app { e }
     ;
 app:
@@ -50,7 +50,8 @@ app:
     | e = base { e }
     ;
 base:
-    | VOID { Void }
+    | VOID { Unit }
+    | LPAREN; RPAREN { Unit }
     | nr = INT { Int nr }
     | TRUE { Bool true }
     | FALSE { Bool false }

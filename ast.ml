@@ -1,7 +1,7 @@
 type id = string
 
 type expr =
-  | Void | Int of int | Bool of bool
+  | Unit | Int of int | Bool of bool
   | Var of id
   | Fun of id * expr
   | App of expr * expr
@@ -12,13 +12,13 @@ type expr =
   | Right
 
 type typ =
-  | TVoid | TInt | TBool
+  | TUnit | TInt | TBool
   | TVar of int
   | TFun of typ * typ
   | TPair of typ * typ
 
 type annotated_expr = (* TODO: Make protectedso that AVar can only have type var etc.*)
-  | AVoid
+  | AUnit
   | AInt of int * typ
   | ABool of bool * typ
   | AVar of id * typ
@@ -32,7 +32,7 @@ type annotated_expr = (* TODO: Make protectedso that AVar can only have type var
 
 let rec expr_to_string expr =
   match expr with
-  | Void -> Printf.sprintf "void(:3)"
+  | Unit -> Printf.sprintf "Unit"
   | Int nr -> Printf.sprintf "%d" nr
   | Bool b -> let text = if b then "true" else "false" in Printf.sprintf "%s" text
   | Var id -> Printf.sprintf "%s" id
@@ -48,7 +48,7 @@ let rec expr_to_string expr =
   ;;
 let rec type_to_string typ =
   match typ with
-  | TVoid -> Printf.sprintf "void"
+  | TUnit -> Printf.sprintf "unit"
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
   | TVar x -> Printf.sprintf "a%d" x
