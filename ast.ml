@@ -7,11 +7,13 @@ type expr =
   | App of expr * expr
   | Let of id * expr * expr
   | If of expr * expr * expr
+  | Pair of expr * expr
 
 type typ =
   | TVoid | TInt | TBool
   | TVar of int
   | TFun of typ * typ
+  | TPair of typ * typ
 
 type annotated_expr = (* TODO: Make protectedso that AVar can only have type var etc.*)
   | AVoid
@@ -22,6 +24,7 @@ type annotated_expr = (* TODO: Make protectedso that AVar can only have type var
   | AApp of annotated_expr * annotated_expr * typ
   | ALet of id * annotated_expr * annotated_expr * typ
   | AIf of annotated_expr * annotated_expr * annotated_expr * typ
+  | APair of annotated_expr * annotated_expr
 
 let rec expr_to_string expr =
   match expr with
@@ -35,7 +38,8 @@ let rec expr_to_string expr =
     Printf.sprintf "let %s := %s in %s" id (expr_to_string expr1) (expr_to_string expr2)
   | If(expr1, expr2, expr3) -> 
     Printf.sprintf "if %s then %s else %s" (expr_to_string expr1) (expr_to_string expr2) (expr_to_string expr3)
-;;
+  | Pair(e1, e2) -> Printf.sprintf "(%s, %s)" (expr_to_string e1) (expr_to_string e2)
+  ;;
 let rec type_to_string typ =
   match typ with
   | TVoid -> Printf.sprintf "void"
@@ -44,4 +48,5 @@ let rec type_to_string typ =
   | TVar x -> Printf.sprintf "a%d" x
   | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (type_to_string x)
   | TFun (f, x) -> Printf.sprintf "%s -> %s" (type_to_string f) (type_to_string x) 
+  | TPair(a, b) -> Printf.sprintf "%s * %s" (type_to_string a) (type_to_string b)
 

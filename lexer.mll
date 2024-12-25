@@ -3,15 +3,15 @@
 }
 let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
-let signs = [^' ''\t''\n''('')']
+let signs = [^' ''\t''\n''('')'',']
 let integer = '-'? digit+
 let identifier = signs+
+
 
 rule token =
     parse
     | '\n' {Lexing.new_line lexbuf; token lexbuf}
     | whitespace {token lexbuf}
-    | "∅"{VOID}
     | "void"{VOID}
     | "(" {LPAREN}
     | ")" {RPAREN}
@@ -25,6 +25,7 @@ rule token =
     | "else" {ELSE}
     | "true" {TRUE}
     | "false" {FALSE}
+    | "," {COMMA}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}

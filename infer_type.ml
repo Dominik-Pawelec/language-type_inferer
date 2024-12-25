@@ -10,7 +10,7 @@ module M = Map.Make(String)
 type env = typ M.t
 
 
-let type_of = function
+let rec type_of = function
   | AVoid -> TVoid
   | AInt _ -> TInt
   | ABool _ -> TBool
@@ -19,6 +19,7 @@ let type_of = function
   | AApp(_, _, t) -> t
   | ALet(_,_,_,t) -> t
   | AIf(_,_,_,t) -> t
+  | APair(a,b) -> TPair(type_of a, type_of b)
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
@@ -49,6 +50,7 @@ let annotate expr =
     Hashtbl.add h_table id a;
     ALet(id, avalue, aexpr, type_of aexpr)
   | If(e, t, f) -> AIf(annotate_rec e env, annotate_rec t env, annotate_rec f env, (new_type ()))
+  | Pair(a, b) -> APair(annotate_rec a env, annotate_rec b env)
   in annotate_rec expr (M.empty) 
 ;;
 
@@ -75,9 +77,8 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let t_constrains = collect_constrains [t] constrains_ls in
     let f_constrains = collect_constrains [f] constrains_ls in
     collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
-;;
-
-
+  | APair(_,_)::rest -> collect_constrains rest constrains_ls
+  ;;
 
 let infer expr =
   type_name := 0;

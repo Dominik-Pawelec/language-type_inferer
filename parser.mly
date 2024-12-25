@@ -10,6 +10,7 @@
 %token <int> INT
 %token <string> IDENT
 %token LPAREN RPAREN
+%token COMMA
 %token FUN ARROW
 %token LET ASSIGN IN
 %token IF THEN ELSE
@@ -18,6 +19,8 @@
 %token EOF
 
 %start <expr> prog
+
+%left COMMA
 
 %%
 
@@ -37,6 +40,7 @@ mixfix:
     | x = expr { x }
     ;
 expr:
+    | e1 = expr; COMMA; e2 = expr {Pair(e1, e2)}
     | e = app { e }
     ;
 app:
