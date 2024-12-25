@@ -52,7 +52,13 @@ let rec type_to_string typ =
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
   | TVar x -> Printf.sprintf "a%d" x
-  | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (type_to_string x)
-  | TFun (f, x) -> Printf.sprintf "%s -> %s" (type_to_string f) (type_to_string x) 
-  | TPair(a, b) -> Printf.sprintf "(%s * %s)" (type_to_string a) (type_to_string b)
+  | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (parenthesis x)
+  | TFun (f, x) -> Printf.sprintf "%s -> %s" (parenthesis f) (parenthesis x) 
+  | TPair(a, b) -> Printf.sprintf "%s * %s" (type_to_string a) (type_to_string b)
+and parenthesis = function
+  | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")"
+  | x -> type_to_string x 
+
+
+
 

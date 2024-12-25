@@ -31,7 +31,5 @@ Examples of expresions typed using rtpl.
     >> Type: bool
     > fun x y z -> x (y z z)
     >> Type: (a4 -> a3) -> (a2 -> a2 -> a4) -> a2 -> a3
-    
-    
 
-y implementation of a simple S-Expression programing language with Hindley-Milner type system and type inference
+

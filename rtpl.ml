@@ -1,4 +1,3 @@
-
 (*RTPL: Read; Type; Print; Loop*)
 
 open Infer_type
