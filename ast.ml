@@ -8,6 +8,8 @@ type expr =
   | Let of id * expr * expr
   | If of expr * expr * expr
   | Pair of expr * expr
+  | Left
+  | Right
 
 type typ =
   | TVoid | TInt | TBool
@@ -25,6 +27,8 @@ type annotated_expr = (* TODO: Make protectedso that AVar can only have type var
   | ALet of id * annotated_expr * annotated_expr * typ
   | AIf of annotated_expr * annotated_expr * annotated_expr * typ
   | APair of annotated_expr * annotated_expr
+  | ALeft of typ
+  | ARight of typ
 
 let rec expr_to_string expr =
   match expr with
@@ -39,6 +43,8 @@ let rec expr_to_string expr =
   | If(expr1, expr2, expr3) -> 
     Printf.sprintf "if %s then %s else %s" (expr_to_string expr1) (expr_to_string expr2) (expr_to_string expr3)
   | Pair(e1, e2) -> Printf.sprintf "(%s, %s)" (expr_to_string e1) (expr_to_string e2)
+  | Left -> "left"
+  | Right -> "right"
   ;;
 let rec type_to_string typ =
   match typ with

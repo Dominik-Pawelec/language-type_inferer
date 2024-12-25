@@ -26,6 +26,8 @@ rule token =
     | "true" {TRUE}
     | "false" {FALSE}
     | "," {COMMA}
+    | "left" {LEFT}
+    | "right" {RIGHT}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}

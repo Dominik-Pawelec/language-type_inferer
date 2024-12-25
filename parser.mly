@@ -10,7 +10,7 @@
 %token <int> INT
 %token <string> IDENT
 %token LPAREN RPAREN
-%token COMMA
+%token COMMA LEFT RIGHT
 %token FUN ARROW
 %token LET ASSIGN IN
 %token IF THEN ELSE
@@ -20,7 +20,7 @@
 
 %start <expr> prog
 
-%left COMMA
+%right COMMA
 
 %%
 
@@ -45,6 +45,8 @@ expr:
     ;
 app:
     | e1 = app; e2 = base { App(e1, e2) }
+    | LEFT {Left}
+    | RIGHT {Right}
     | e = base { e }
     ;
 base:

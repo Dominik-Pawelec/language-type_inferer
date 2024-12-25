@@ -20,6 +20,8 @@ let rec type_of = function
   | ALet(_,_,_,t) -> t
   | AIf(_,_,_,t) -> t
   | APair(a,b) -> TPair(type_of a, type_of b)
+  | ALeft t -> t
+  | ARight t -> t
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
@@ -51,6 +53,12 @@ let annotate expr =
     ALet(id, avalue, aexpr, type_of aexpr)
   | If(e, t, f) -> AIf(annotate_rec e env, annotate_rec t env, annotate_rec f env, (new_type ()))
   | Pair(a, b) -> APair(annotate_rec a env, annotate_rec b env)
+  | Left -> 
+    let new_var1, new_var2 = new_type (), new_type () in
+    ALeft (TFun(TPair(new_var1, new_var2),new_var1))
+  | Right -> 
+    let new_var1, new_var2 = new_type (), new_type () in
+    ARight (TFun(TPair(new_var1, new_var2),new_var2))
   in annotate_rec expr (M.empty) 
 ;;
 
@@ -78,7 +86,12 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let f_constrains = collect_constrains [f] constrains_ls in
     collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
   | APair(_,_)::rest -> collect_constrains rest constrains_ls
-  ;;
+  | ALeft(TFun(TPair(x, _), out))::rest ->  
+    collect_constrains rest ((x, out)::constrains_ls) 
+  | ARight(TFun(TPair(_, y), out))::rest ->  
+    collect_constrains rest ((y, out)::constrains_ls) 
+  | _ -> failwith "wrong type annotation"
+;;
 
 let infer expr =
   type_name := 0;
