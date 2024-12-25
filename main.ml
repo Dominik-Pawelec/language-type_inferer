@@ -11,7 +11,7 @@ let read_file file_name =
         let lexbuf = Lexing.from_string line in
         let expr = Parser.prog Lexer.token lexbuf in
         let typ = infer expr in
-        Printf.printf "> %s \n>> Type: %s\n" (expr_to_string expr) (type_to_string typ);
+        Printf.printf "> %s \n>> Type: %s\n" (line) (type_to_string typ);
       done
     with
     | End_of_file ->
