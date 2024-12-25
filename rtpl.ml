@@ -12,5 +12,3 @@ let rec rtpl () =
   let typ = infer expr in
   Printf.printf ">> Type: %s\n" (type_to_string typ);
   rtpl ()
-;;
-rtpl ()

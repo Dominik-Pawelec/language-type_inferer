@@ -26,6 +26,7 @@
 
 prog:
     | e = mixfix EOF { e }
+    | EOF { Int 0 }
     ;
 
 idents:

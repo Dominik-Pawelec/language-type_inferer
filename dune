@@ -2,5 +2,5 @@
 (ocamllex lexer)
 
 (executable
- (name rtpl)
- (public_name rtpl))
+ (name main)
+ (public_name main))

@@ -1,0 +1,6 @@
+let x := fun x -> x in x (1,2)
+
+
+fun x y z -> (x, y, z)
+
+()

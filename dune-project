@@ -1,7 +1,7 @@
 (lang dune 3.0)
 
 (package
- (name rtpl)
+ (name type_inferer)
  (synopsis "simple type inferer for functional language")
  (description ""))
 
