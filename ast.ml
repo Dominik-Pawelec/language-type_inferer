@@ -10,6 +10,15 @@ type expr =
   | Pair of expr * expr
   | Left
   | Right
+  | Match of expr * (pattern * expr) list
+
+and pattern =
+  | PUnit
+  | PBool of bool
+  | PInt of int
+  | PWildcard
+  | PVar of id
+  | PPair of pattern * pattern
 
 type typ =
   | TUnit | TInt | TBool
@@ -29,8 +38,9 @@ type annotated_expr = (* TODO: Make protectedso that AVar can only have type var
   | APair of annotated_expr * annotated_expr
   | ALeft of typ
   | ARight of typ
+  | AMatch of annotated_expr * (pattern * typ * annotated_expr) list * typ
 
-let rec expr_to_string expr =
+(*let rec expr_to_string expr =
   match expr with
   | Unit -> Printf.sprintf "Unit"
   | Int nr -> Printf.sprintf "%d" nr
@@ -44,7 +54,7 @@ let rec expr_to_string expr =
     Printf.sprintf "if %s then %s else %s" (expr_to_string expr1) (expr_to_string expr2) (expr_to_string expr3)
   | Pair(e1, e2) -> Printf.sprintf "(%s, %s)" (expr_to_string e1) (expr_to_string e2)
   | Left -> "left"
-  | Right -> "right"
+  | Right -> "right"*)
   ;;
 let rec type_to_string typ =
   match typ with

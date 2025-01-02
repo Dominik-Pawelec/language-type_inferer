@@ -12,10 +12,11 @@
 %token LPAREN RPAREN
 %token COMMA LEFT RIGHT
 %token FUN ARROW
+%token MATCH COLON HASH
 %token LET ASSIGN IN
 %token IF THEN ELSE
 %token TRUE FALSE
-%token VOID
+%token VOID WILDCARD
 %token EOF
 
 %start <expr> prog
@@ -39,8 +40,21 @@ mixfix:
     | e1 = mixfix; COMMA; e2 = mixfix {Pair(e1, e2)}
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
+    | MATCH; e = expr; COLON; cases = patternmatch {Match(e, cases)}
     | x = expr { x }
     ;
+patternmatch:
+    | HASH; p = pattern; ARROW; e = expr {[(p, e)]}
+    | p1 = patternmatch; p2 = patternmatch {p1 @ p2}
+    ;
+pattern:
+    | WILDCARD {PWildcard}
+    | VOID {PUnit}
+    | nr = INT {PInt nr}
+    | TRUE { PBool true }
+    | FALSE { PBool false }
+    | x = IDENT { PVar x }
+    | LPAREN; e1 = pattern; COMMA; e2 = pattern; RPAREN {PPair(e1, e2)} 
 expr:
     | e = app { e }
     ;
