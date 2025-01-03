@@ -12,8 +12,8 @@
 %token LPAREN RPAREN
 %token COMMA LEFT RIGHT
 %token FUN ARROW
-%token MATCH COLON HASH
-%token LET ASSIGN IN
+%token MATCH WITH CASE
+%token LET EQUAL IN
 %token IF THEN ELSE
 %token TRUE FALSE
 %token VOID WILDCARD
@@ -36,15 +36,15 @@ idents:
     ;
 
 mixfix:
-    | LET; x = IDENT; ASSIGN; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
+    | LET; x = IDENT; EQUAL; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
     | e1 = mixfix; COMMA; e2 = mixfix {Pair(e1, e2)}
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
-    | MATCH; e = expr; COLON; cases = patternmatch {Match(e, cases)}
+    | MATCH; e = expr; WITH; cases = patternmatch {Match(e, cases)}
     | x = expr { x }
     ;
 patternmatch:
-    | HASH; p = pattern; ARROW; e = expr {[(p, e)]}
+    | CASE; p = pattern; ARROW; e = expr {[(p, e)]}
     | p1 = patternmatch; p2 = patternmatch {p1 @ p2}
     ;
 pattern:
@@ -54,7 +54,9 @@ pattern:
     | TRUE { PBool true }
     | FALSE { PBool false }
     | x = IDENT { PVar x }
-    | LPAREN; e1 = pattern; COMMA; e2 = pattern; RPAREN {PPair(e1, e2)} 
+    | e1 = pattern; COMMA; e2 = pattern {PPair(e1, e2)}
+    | LPAREN; p = pattern; RPAREN {p}
+    ; 
 expr:
     | e = app { e }
     ;

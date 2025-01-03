@@ -24,13 +24,6 @@ let rec type_of = function
   | ARight t -> t
   | AMatch(_,_,t) -> t
 
-let rec type_of_pattern = function
-  | PUnit -> TUnit
-  | PBool _ -> TBool
-  | PInt _ -> TInt
-  | PWildcard -> new_type ()
-  | PVar _ -> new_type ()
-  | PPair(a, b) -> TPair(type_of_pattern a, type_of_pattern b)
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
@@ -67,13 +60,36 @@ let annotate expr =
   | Right -> 
     let new_var1, new_var2 = new_type (), new_type () in
     ARight (TFun(TPair(new_var1, new_var2),new_var2))
-    | Match(x, cases) ->
-      AMatch(annotate_rec x env,
-      List.map (fun (p,e) -> (p, type_of_pattern p, annotate_rec e env) )
-      cases,
-      annotate_rec (snd (List.hd cases)) env |> type_of)
+  | Match(expr, cases) -> 
+    let annotated_expr = annotate_rec expr env in
+    let result_type = new_type () in
+    let annotate_case (pattern, case) =
+      let rec extend_env_with_pattern pattern env =
+        match pattern with
+        | PUnit -> (env, TUnit)
+        | PBool _ -> (env, TBool)
+        | PInt _ -> (env, TInt)
+        | PWildcard -> (env, new_type ())
+        | PVar id -> 
+          let t = new_type () in
+          (M.add id t env, t)
+        | PPair(p1, p2) ->
+          let (env1, t1) = extend_env_with_pattern p1 env in
+          let (env2, t2) = extend_env_with_pattern p2 env1 in
+          (env2, TPair(t1, t2)) (*TODO: check if it works correctly*)
+      in
+      let (env_with_pattern, pattern_type) = extend_env_with_pattern pattern env in
+      let annotated_branch = annotate_rec case env_with_pattern in
+      (pattern, pattern_type, annotated_branch)
+    in
+    let annotated_cases = List.map annotate_case cases in
+    let _ = 
+      List.map (fun (_, _, branch) -> 
+        (type_of branch, result_type)) annotated_cases in
+    AMatch(annotated_expr, annotated_cases, result_type)
   in annotate_rec expr (M.empty) 
 ;;
+
 
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
@@ -103,22 +119,15 @@ let rec collect_constrains aexpr_ls constrains_ls =
     collect_constrains rest ((x, out)::constrains_ls) 
   | ARight(TFun(TPair(_, y), out))::rest ->  
     collect_constrains rest ((y, out)::constrains_ls) 
-  | AMatch(x,cases,typ)::rest ->
-    let x_constrains = 
-      List.fold_left (fun acc (_, t, _) -> (type_of x, t)::acc) [] cases
-    in 
-    let cases_constrains1 =
-      List.fold_left (fun acc (_, _, ae) -> (typ, type_of ae)::acc) [] cases
-    in 
-    let cases_constrains2 = 
-      (*TODO: add bounding variables, eg:
-      fun x -> match x : # (a, b) -> a
-      should have type (a0 * a1) -> a0, not (a0 * a1) -> a2 
-      *)
-      List.fold_left (fun acc (_, t, ae) -> 
-        (collect_constrains [ae] ((type_of x, t)::constrains_ls))@acc) [] cases
-    in 
-    collect_constrains rest (x_constrains @ cases_constrains1 @ cases_constrains2 @ constrains_ls)
+  | AMatch(expr, cases, result_type) :: rest ->
+    let expr_type = type_of expr in
+    let case_constraints =
+      List.concat (List.map (fun (_, pat_type, branch) ->
+        let branch_type = type_of branch in
+        (expr_type, pat_type) :: (branch_type, result_type) ::
+        collect_constrains [branch] []
+      ) cases) in 
+      collect_constrains rest (case_constraints @ constrains_ls)
   | _ -> failwith "wrong type annotation"
 ;;
 

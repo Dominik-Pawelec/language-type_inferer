@@ -3,7 +3,7 @@
 }
 let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
-let signs = [^' ''\t''\n''('')'','':']
+let signs = [^' ''\t''\n''('')'',']
 let integer = '-'? digit+
 let identifier = signs+
 
@@ -18,7 +18,7 @@ rule token =
     | "fun" {FUN} 
     | "->" {ARROW}
     | "let" {LET}
-    | ":=" {ASSIGN}
+    | "=" {EQUAL}
     | "in" {IN}
     | "if" {IF}
     | "then" {THEN}
@@ -29,8 +29,8 @@ rule token =
     | "left" {LEFT}
     | "right" {RIGHT}
     | "match" {MATCH}
-    | ":" {COLON}
-    | "#" {HASH}
+    | "with" {WITH}
+    | "case" {CASE}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}
