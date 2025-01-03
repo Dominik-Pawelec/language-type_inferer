@@ -24,6 +24,19 @@ let rec type_of = function
   | ARight t -> t
   | AMatch(_,_,t) -> t
 
+let rec type_of_pattern env = function
+  | PUnit -> (TUnit, env)
+  | PBool _ -> (TBool, env)
+  | PInt _ -> (TInt, env)
+  | PWildcard -> (new_type (), env)
+  | PVar id -> 
+    let t = new_type () in
+    (t, M.add id t env)
+  | PPair (p1, p2) -> 
+    let (t1, env') = type_of_pattern env p1 in
+    let (t2, env'') = type_of_pattern env' p2 in
+    (TPair(t1, t2), env'')
+
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
@@ -60,33 +73,17 @@ let annotate expr =
   | Right -> 
     let new_var1, new_var2 = new_type (), new_type () in
     ARight (TFun(TPair(new_var1, new_var2),new_var2))
-  | Match(expr, cases) -> 
+  | Match(expr, cases) ->
     let annotated_expr = annotate_rec expr env in
-    let result_type = new_type () in
-    let annotate_case (pattern, case) =
-      let rec extend_env_with_pattern pattern env =
-        match pattern with
-        | PUnit -> (env, TUnit)
-        | PBool _ -> (env, TBool)
-        | PInt _ -> (env, TInt)
-        | PWildcard -> (env, new_type ())
-        | PVar id -> 
-          let t = new_type () in
-          (M.add id t env, t)
-        | PPair(p1, p2) ->
-          let (env1, t1) = extend_env_with_pattern p1 env in
-          let (env2, t2) = extend_env_with_pattern p2 env1 in
-          (env2, TPair(t1, t2)) (*TODO: check if it works correctly*)
-      in
-      let (env_with_pattern, pattern_type) = extend_env_with_pattern pattern env in
-      let annotated_branch = annotate_rec case env_with_pattern in
-      (pattern, pattern_type, annotated_branch)
-    in
-    let annotated_cases = List.map annotate_case cases in
-    let _ = 
-      List.map (fun (_, _, branch) -> 
-        (type_of branch, result_type)) annotated_cases in
-    AMatch(annotated_expr, annotated_cases, result_type)
+    let annotated_cases =
+      List.map (fun (pattern, case) -> 
+        let (pattern_type, new_env) = type_of_pattern env pattern in
+        (pattern, pattern_type, (annotate_rec case new_env)))
+        cases in
+    let output_type = match (List.hd annotated_cases) with
+        | (_,_,x) -> type_of x   in
+    AMatch(annotated_expr, annotated_cases, output_type )
+      
   in annotate_rec expr (M.empty) 
 ;;
 
@@ -119,15 +116,16 @@ let rec collect_constrains aexpr_ls constrains_ls =
     collect_constrains rest ((x, out)::constrains_ls) 
   | ARight(TFun(TPair(_, y), out))::rest ->  
     collect_constrains rest ((y, out)::constrains_ls) 
-  | AMatch(expr, cases, result_type) :: rest ->
-    let expr_type = type_of expr in
-    let case_constraints =
-      List.concat (List.map (fun (_, pat_type, branch) ->
-        let branch_type = type_of branch in
-        (expr_type, pat_type) :: (branch_type, result_type) ::
-        collect_constrains [branch] []
-      ) cases) in 
-      collect_constrains rest (case_constraints @ constrains_ls)
+  | AMatch(aexpr, cases, result_type) :: rest ->
+    let aexpr_constrains = collect_constrains [aexpr] constrains_ls in
+    let case_expr_constrains = 
+      List.fold_left (fun constr (_,t,_) -> (type_of aexpr, t)::constr)
+      [] cases in
+    let output_constrains = 
+      List.fold_left (fun constr (_,_,aexpr') -> (type_of aexpr', result_type)::constr)
+      [] cases in
+    collect_constrains rest (aexpr_constrains @ case_expr_constrains @ output_constrains)
+
   | _ -> failwith "wrong type annotation"
 ;;
 
