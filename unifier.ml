@@ -20,6 +20,8 @@ let rec occurs id typ =
   | TFun (u, v) -> occurs id u || occurs id v
   | TPair(a, b) -> occurs id a || occurs id b
 
+
+
 let rec unify_pair t1 t2 : subst =
   match t1, t2 with
   | (TInt as t), TVar a | (TBool as t), TVar a 

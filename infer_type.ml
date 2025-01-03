@@ -82,7 +82,7 @@ let annotate expr =
         cases in
     let output_type = match (List.hd annotated_cases) with
         | (_,_,x) -> type_of x   in
-    AMatch(annotated_expr, annotated_cases, output_type )
+    AMatch(annotated_expr, annotated_cases, output_type)
       
   in annotate_rec expr (M.empty) 
 ;;
@@ -119,12 +119,15 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AMatch(aexpr, cases, result_type) :: rest ->
     let aexpr_constrains = collect_constrains [aexpr] constrains_ls in
     let case_expr_constrains = 
-      List.fold_left (fun constr (_,t,_) -> (type_of aexpr, t)::constr)
-      [] cases in
+      List.fold_left (fun constr (_,t,_) ->  (type_of aexpr, t) :: constr)
+      aexpr_constrains cases in
     let output_constrains = 
-      List.fold_left (fun constr (_,_,aexpr') -> (type_of aexpr', result_type)::constr)
+      List.fold_left (fun constr (_,_,aexpr') -> (type_of aexpr', result_type):: constr )
+      case_expr_constrains cases in
+    let uwu = 
+    List.fold_left (fun constr (_,_,aexpr') -> (collect_constrains [aexpr'] output_constrains) @constr )
       [] cases in
-    collect_constrains rest (aexpr_constrains @ case_expr_constrains @ output_constrains)
+    collect_constrains rest (uwu @ output_constrains)
 
   | _ -> failwith "wrong type annotation"
 ;;
