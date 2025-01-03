@@ -1,7 +1,7 @@
 {
     open Parser
 }
-let whitespace = [' ' '\t']+
+let whitespace = [' ' '\t''\n']+
 let digit = ['0'-'9']
 let signs = [^' ''\t''\n''('')'',']
 let integer = '-'? digit+
@@ -10,7 +10,6 @@ let identifier = signs+
 
 rule token =
     parse
-    | '\n' {Lexing.new_line lexbuf; token lexbuf}
     | whitespace {token lexbuf}
     | "void"{VOID}
     | "(" {LPAREN}

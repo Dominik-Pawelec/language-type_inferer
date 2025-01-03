@@ -64,9 +64,13 @@ let rec type_to_string typ =
   | TVar x -> Printf.sprintf "a%d" x
   | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (parenthesis x)
   | TFun (f, x) -> Printf.sprintf "%s -> %s" (parenthesis f) (parenthesis x) 
-  | TPair(a, b) -> Printf.sprintf "%s * %s" (type_to_string a) (type_to_string b)
+  | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis2 a) (type_to_string b)
 and parenthesis = function
   | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")"
+  | x -> type_to_string x 
+
+and parenthesis2 = function
+  | TFun(a,b) -> "(" ^ (type_to_string (TFun(a,b))) ^ ")"
   | x -> type_to_string x 
 
 

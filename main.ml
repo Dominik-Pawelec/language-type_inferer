@@ -1,6 +1,6 @@
-open Infer_type
-open Ast
-
+(*open Infer_type
+open Ast*)
+(*
 let read_file file_name =
   try
     let ic = open_in file_name in
@@ -19,12 +19,13 @@ let read_file file_name =
   with
   | Sys_error err ->
     Printf.printf "Error: %s \n" err
-
+*)
 let () =
   if Array.length Sys.argv <> 2 then
     Printf.printf "Usage: ./_build/default/main.exe <\"example.typed\" to type file line by line or -r for repl>\n "  
   else
     match Array.to_list Sys.argv with
     | [_; "-r"] -> Rtpl.rtpl ()
-    | [_; file_name] -> read_file file_name
+    (*| [_; file_name] -> read_file file_name*)
     | _ -> Printf.printf "Usage: ./_build/default/main.exe < example.typed to type file line by line or -r for repl>\n "  
+
