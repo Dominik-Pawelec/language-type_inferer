@@ -27,7 +27,7 @@
 
 prog:
     | e = mixfix EOF { e }
-    | EOF { Int 0 }
+    | EOF { Unit }
     ;
 
 idents:

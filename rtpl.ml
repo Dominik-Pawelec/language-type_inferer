@@ -11,7 +11,6 @@ let rec read () =
 let rec rtpl () =
   Printf.printf "> ";
   let input = read () in
-  Printf.printf "DEBUG: %s \n" input;
   let lexbuf = Lexing.from_string input in
   let expr = Parser.prog Lexer.token lexbuf in
   let typ = infer expr in

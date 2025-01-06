@@ -1,35 +1,46 @@
 # Type Inferer
 
 
-This project implements Hindley Milner Type Inference for a simple functional language.
-This language contains λ-calculus with additional operations: let, if ; and primitive types: void, bool, int.
+This project implements Type Inference algorithm for a simple functional language.
+Language contains:
+    > basic types: unit, bool, int
+    > functions
+    > pairs
+    > let, if expressions
+    > pattern matching
 
 ## RTPL
 To run RTPL (Read Type Print Loop) you need to first compile project using **dune**:
 
     dune build
 
-Then  you can run rtpl with command:
+Then run rtpl with command:
 
-    _build/default/rtpl.exe
+    _build/default/main.exe -r
  
 
 ## Examples
 Examples of expresions typed using rtpl.
 
-    > a
-    >> Type: a0
-    > true
+    > true;
     >> Type: bool
-    > fun x -> x
+    > fun x -> x;
     >> Type: a0 -> a0
-    > let id := fun x -> x in id 20
+    > let id = fun x -> x in id 20;
     >> Type: int
-    > if true then fun x -> 2 else fun y -> 3
-    >> Type: a1 -> int
-    > let t := fun x y -> true in if t 2 void then false else true
-    >> Type: bool
-    > fun x y z -> x (y z z)
+    > if true then fun x -> 2 else fun y -> 3;
+    >> Type: a1 -> int 
+    > fun x y z -> x (y z z);
     >> Type: (a4 -> a3) -> (a2 -> a2 -> a4) -> a2 -> a3
-
-
+    > fun x y -> (x,y);
+    >> Type: a0 -> a1 -> (a0 * a1)
+    > fun x -> match x with
+    case (_,0) -> false
+    case _ -> true
+    ;
+    >> Type: (a1 * int) -> bool
+    
+## In the near future:
+> algebraic data types and user define types
+> error handling in rtpl
+> prettier type printing

@@ -36,6 +36,8 @@ let rec type_of_pattern env = function
     let (t1, env') = type_of_pattern env p1 in
     let (t2, env'') = type_of_pattern env' p2 in
     (TPair(t1, t2), env'')
+  | PCustom(name, patterns) ->
+    ...
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
