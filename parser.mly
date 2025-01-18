@@ -16,18 +16,22 @@
 %token LET EQUAL IN
 %token IF THEN ELSE
 %token TRUE FALSE
-%token VOID WILDCARD
+%token UNIT  WILDCARD DEF
 %token EOF
 
-%start <expr> prog
+%start <program> prog
 
 %left COMMA
 
 %%
 
 prog:
-    | e = mixfix EOF { e }
-    | EOF { Unit }
+    | e = mixfix; EOF { Expr (e) }
+    | d = definition; EOF { d }
+    | EOF { Expr Unit }
+    ;
+definition:
+    | DEF; x = IDENT; EQUAL; e = mixfix {Define(x, e)}
     ;
 
 idents:
@@ -49,7 +53,7 @@ patternmatch:
     ;
 pattern:
     | WILDCARD {PWildcard}
-    | VOID {PUnit}
+    | UNIT {PUnit}
     | nr = INT {PInt nr}
     | TRUE { PBool true }
     | FALSE { PBool false }
@@ -67,7 +71,7 @@ app:
     | e = base { e }
     ;
 base:
-    | VOID { Unit }
+    | UNIT { Unit }
     | LPAREN; RPAREN { Unit }
     | nr = INT { Int nr }
     | TRUE { Bool true }

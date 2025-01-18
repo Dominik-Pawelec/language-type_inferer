@@ -11,7 +11,7 @@ let identifier = signs+
 rule token =
     parse
     | whitespace {token lexbuf}
-    | "void"{VOID}
+    | "unit"{UNIT}
     | "(" {LPAREN}
     | ")" {RPAREN}
     | "fun" {FUN} 
@@ -30,6 +30,7 @@ rule token =
     | "match" {MATCH}
     | "with" {WITH}
     | "case" {CASE}
+    | "def" {DEF}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}

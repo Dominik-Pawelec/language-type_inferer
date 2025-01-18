@@ -12,7 +12,9 @@ let rec rtpl () =
   Printf.printf "> ";
   let input = read () in
   let lexbuf = Lexing.from_string input in
-  let expr = Parser.prog Lexer.token lexbuf in
-  let typ = infer expr in
-  Printf.printf ">> Type: %s\n" (type_to_string typ);
-  rtpl ()
+  begin match Parser.prog Lexer.token lexbuf with
+  | Expr expr ->
+    let typ = infer expr in
+    Printf.printf ">> Type: %s\n" (type_to_string typ)
+  | Define(id, expr) -> Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (infer expr))
+  end; rtpl()

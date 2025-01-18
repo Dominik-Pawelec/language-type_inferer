@@ -1,6 +1,12 @@
 type id = string
 
-type expr =
+type program =
+  | Expr of expr 
+  | Define of define
+
+and define = id * expr
+
+and expr =
   | Unit | Int of int | Bool of bool
   | Var of id
   | Fun of id * expr
