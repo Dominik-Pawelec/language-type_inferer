@@ -36,8 +36,6 @@ let rec type_of_pattern env = function
     let (t1, env') = type_of_pattern env p1 in
     let (t2, env'') = type_of_pattern env' p2 in
     (TPair(t1, t2), env'')
-  | PCustom(name, patterns) ->
-    ...
 
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
@@ -130,7 +128,6 @@ let rec collect_constrains aexpr_ls constrains_ls =
     List.fold_left (fun constr (_,_,aexpr') -> (collect_constrains [aexpr'] output_constrains) @constr )
       [] cases in
     collect_constrains rest (uwu @ output_constrains)
-
   | _ -> failwith "wrong type annotation"
 ;;
 
