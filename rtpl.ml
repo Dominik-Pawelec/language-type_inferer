@@ -8,13 +8,16 @@ let rec read () =
   if String.ends_with ~suffix:";" line
     then String.sub line 0 (String.length line - 1)
     else line ^ " " ^ (read ())
-let rec rtpl () =
+let rec rtpl () def_env =
   Printf.printf "> ";
   let input = read () in
   let lexbuf = Lexing.from_string input in
   begin match Parser.prog Lexer.token lexbuf with
   | Expr expr ->
-    let typ = infer expr in
-    Printf.printf ">> Type: %s\n" (type_to_string typ)
-  | Define(id, expr) -> Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (infer expr))
-  end; rtpl()
+    let typ = infer expr def_env in
+    Printf.printf ">> Type: %s\n" (type_to_string typ); rtpl () def_env
+  | Define(id, expr) -> 
+    let new_def_env = (id, expr)::def_env in
+    Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (infer expr def_env));
+    rtpl () new_def_env
+  end; 

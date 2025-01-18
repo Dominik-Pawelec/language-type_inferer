@@ -25,7 +25,7 @@ let () =
     Printf.printf "Usage: ./_build/default/main.exe <\"example.typed\" to type file line by line or -r for repl>\n "  
   else
     match Array.to_list Sys.argv with
-    | [_; "-r"] -> Rtpl.rtpl ()
+    | [_; "-r"] -> Rtpl.rtpl () []
     (*| [_; file_name] -> read_file file_name*)
     | _ -> Printf.printf "Usage: ./_build/default/main.exe < example.typed to type file line by line or -r for repl>\n "  
 

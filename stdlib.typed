@@ -1,0 +1,10 @@
+def id = fun x -> x
+;
+def left = fun x -> match x with
+	case (a, _) -> a
+;
+def right = fun x -> match x with
+	case (_, a) -> a
+;
+def void = ()
+;

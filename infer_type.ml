@@ -131,9 +131,14 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | _ -> failwith "wrong type annotation"
 ;;
 
-let infer expr =
+let infer expr def_env =
+    let rec def_to_let env = 
+      match env with
+      | [] -> expr
+      | (id, e)::xs -> Let(id, e, def_to_let xs)
+    in
   type_name := 0;
-  let annotated_expr = annotate expr
+  let annotated_expr = annotate (def_to_let def_env)
   in let constrains = collect_constrains [annotated_expr] []
   in let temp = Unifier.unify constrains
   in Unifier.apply_substitution temp (type_of annotated_expr)
