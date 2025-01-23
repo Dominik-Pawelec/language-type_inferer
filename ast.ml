@@ -32,8 +32,9 @@ type typ =
   | TVar of int
   | TFun of typ * typ
   | TPair of typ * typ
+  | TPolymorphic of typ
 
-type annotated_expr = (* TODO: Make protectedso that AVar can only have type var etc.*)
+type annotated_expr =
   | AUnit
   | AInt of int * typ
   | ABool of bool * typ
@@ -72,6 +73,7 @@ let rec type_to_string typ =
   | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (parenthesis x)
   | TFun (f, x) -> Printf.sprintf "%s -> %s" (parenthesis f) (parenthesis x) 
   | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis2 a) (type_to_string b)
+  | TPolymorphic t -> Printf.sprintf "Polymorphic: %s" (type_to_string t)
 
 and parenthesis = function
   | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")"

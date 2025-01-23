@@ -37,6 +37,22 @@ let rec type_of_pattern env = function
     let (t2, env'') = type_of_pattern env' p2 in
     (TPair(t1, t2), env'')
 
+let copy_type t1 =
+  let (h_table : (int, typ) Hashtbl.t) = Hashtbl.create 16 in
+  let rec copy_type' t1 = 
+    match t1 with
+    | TVar a -> 
+      (match Hashtbl.find_opt h_table a with
+      | Some x -> x
+      | None -> let x_subst = new_type () in Hashtbl.add h_table a x_subst; x_subst
+      )
+    | TFun (inp, out) -> TFun(copy_type' inp, copy_type' out)
+    | TPair (l, r) -> TPair(copy_type' l, copy_type' r)
+    | TPolymorphic t -> copy_type' t
+    | _ -> t1
+  in copy_type' t1
+
+
 let annotate expr =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
@@ -61,10 +77,11 @@ let annotate expr =
   | Let(id, value, expr) -> 
     let avalue = annotate_rec value env in
     let value_typ = type_of avalue in
-    let aexpr = annotate_rec expr (M.add id value_typ env) in
-    let a = type_of avalue in
-    Hashtbl.add h_table id a;
+    let generalized_typ = TPolymorphic (copy_type value_typ)
+    in
+    let aexpr = annotate_rec expr (M.add id generalized_typ env) in
     ALet(id, avalue, aexpr, type_of aexpr)
+
   | If(e, t, f) -> AIf(annotate_rec e env, annotate_rec t env, annotate_rec f env, (new_type ()))
   | Pair(a, b) -> APair(annotate_rec a env, annotate_rec b env)
   | Left -> 
@@ -87,6 +104,24 @@ let annotate expr =
   in annotate_rec expr (M.empty) 
 ;;
 
+let instantiate t =
+  let subst_table = Hashtbl.create 16 in
+  let rec instantiate_aux t =
+    match t with
+    | TUnit | TInt | TBool -> t
+    | TVar x -> (
+        match Hashtbl.find_opt subst_table x with
+        | Some new_t -> new_t
+        | None ->
+            let new_var = new_type () in
+            Hashtbl.add subst_table x new_var;
+            new_var)
+    | TFun (input, output) -> TFun(instantiate_aux input, instantiate_aux output)
+    | TPair (left, right) -> TPair(instantiate_aux left, instantiate_aux right)
+    | TPolymorphic t' -> instantiate_aux t'
+  in
+  instantiate_aux t
+
 
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
@@ -100,11 +135,11 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let (t1, t2) = (type_of aexpr1, type_of aexpr2) in
   collect_constrains (aexpr1 :: aexpr2 :: rest) ( (t1, TFun(t2, t))::constrains_ls)
   | ALet(id, value, expr, _)::rest -> 
-    let var_id = type_of (annotate (Var id)) in
     let value_typ = type_of value in
+    let generalized_typ = TPolymorphic (copy_type value_typ) in
     let constrains_value = collect_constrains [value] constrains_ls in
-    let constrains_expr = collect_constrains [expr] ((var_id, value_typ)::constrains_ls) in
-    collect_constrains rest (constrains_value @ constrains_expr @ constrains_ls)
+    let constrains_expr = collect_constrains [expr] ((type_of (annotate (Var id)), instantiate generalized_typ)::constrains_ls) in
+    collect_constrains rest (constrains_value @ constrains_expr)
   | AIf(e, t, f, typ)::rest ->
     let e_typ = type_of e in
     let t_typ = type_of t and f_typ = type_of f in
@@ -131,14 +166,3 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | _ -> failwith "wrong type annotation"
 ;;
 
-let infer expr def_env =
-    let rec def_to_let env = 
-      match env with
-      | [] -> expr
-      | (id, e)::xs -> Let(id, e, def_to_let xs)
-    in
-  type_name := 0;
-  let annotated_expr = annotate (def_to_let def_env)
-  in let constrains = collect_constrains [annotated_expr] []
-  in let temp = Unifier.unify constrains
-  in Unifier.apply_substitution temp (type_of annotated_expr)

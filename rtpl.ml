@@ -1,6 +1,5 @@
 (*RTPL: Read; Type; Print; Loop*)
 
-open Infer_type
 open Ast
 
 let rec read () = 
@@ -14,10 +13,10 @@ let rec rtpl () def_env =
   let lexbuf = Lexing.from_string input in
   begin match Parser.prog Lexer.token lexbuf with
   | Expr expr ->
-    let typ = infer expr def_env in
+    let typ = Unifier.infer expr def_env in
     Printf.printf ">> Type: %s\n" (type_to_string typ); rtpl () def_env
   | Define(id, expr) -> 
     let new_def_env = (id, expr)::def_env in
-    Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (infer expr def_env));
+    Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (Unifier.infer expr def_env));
     rtpl () new_def_env
   end; 
