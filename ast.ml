@@ -41,7 +41,7 @@ type annotated_expr =
   | AVar of id * typ
   | AFun of id * annotated_expr * typ
   | AApp of annotated_expr * annotated_expr * typ
-  | ALet of id * annotated_expr * annotated_expr * typ
+  | ALet of id * annotated_expr * annotated_expr * typ * typ
   | AIf of annotated_expr * annotated_expr * annotated_expr * typ
   | APair of annotated_expr * annotated_expr
   | ALeft of typ

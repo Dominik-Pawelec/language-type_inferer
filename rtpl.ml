@@ -16,7 +16,8 @@ let rec rtpl () def_env =
     let typ = Unifier.infer expr def_env in
     Printf.printf ">> Type: %s\n" (type_to_string typ); rtpl () def_env
   | Define(id, expr) -> 
+    let typed_expr = Unifier.infer expr def_env in
     let new_def_env = (id, expr)::def_env in
-    Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string (Unifier.infer expr def_env));
+    Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string typed_expr);
     rtpl () new_def_env
-  end; 
+  end
