@@ -3,7 +3,6 @@ open Utils
 
 type subst = (int * typ) list
 
-
 let rec substitute id typ new_type =
   match typ with
   | TUnit | TInt | TBool -> typ
@@ -16,6 +15,7 @@ let rec substitute id typ new_type =
 let apply_substitution subst typ =
   List.fold_right (fun (id, t) acc -> substitute id acc t) subst typ
 ;;
+
 let rec occurs id typ =
   match typ with
   | TUnit | TInt | TBool -> false
@@ -23,7 +23,6 @@ let rec occurs id typ =
   | TFun (u, v) -> occurs id u || occurs id v
   | TPair(a, b) -> occurs id a || occurs id b
   | TPolymorphic t -> occurs id t
-
 
 let rec unify_pair t1 t2 : subst =
   match t1, t2 with
@@ -39,7 +38,7 @@ let rec unify_pair t1 t2 : subst =
   | TInt, TInt | TBool, TBool | TUnit , TUnit -> []
   | TPair(a1, b1), TPair(a2, b2) -> unify [(a1, a2);(b1, b2)]
   | TPolymorphic t1, TPolymorphic t2 -> unify[(t1,t2);(TPolymorphic t1, t2); (t1, TPolymorphic t2)]
-  | TPolymorphic t1, t2 | t2, TPolymorphic t1-> unify [(Infer_type.instantiate t1, t2)]
+  | TPolymorphic t1, t2 | t2, TPolymorphic t1-> unify [(instantiate t1, t2)]
   | _, _ -> failwith ("Type error: type mismatch: " ^ (type_to_string t1) ^ ";" ^(type_to_string t2) )
 
 and unify subst =   
@@ -52,22 +51,4 @@ and unify subst =
     let types' = unify_pair t1' t2' in
     types' @ types
 ;;
-
-let debug_constraints constraints =
-  List.iter (fun (t1, t2) -> 
-    Printf.printf "Constraint: %s = %s\n" (type_to_string t1) (type_to_string t2)
-  ) constraints; constraints
-;;
-
-let infer expr def_env =
-    let rec def_to_let env = (*TODO: CHANGE IT*)
-      match env with
-      | [] -> expr
-      | (id, e)::xs -> Let(id, e, def_to_let xs)
-    in
-  Infer_type.type_name := 0;
-  let annotated_expr = Infer_type.annotate (def_to_let (List.rev def_env))
-  in let constrains = debug_constraints (Infer_type.collect_constrains [annotated_expr] [])
-  in let temp = unify constrains
-  in apply_substitution temp (Infer_type.type_of annotated_expr)
 

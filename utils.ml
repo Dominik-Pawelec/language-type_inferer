@@ -9,7 +9,6 @@ let new_type ()=
 module M = Map.Make(String)
 type env = typ M.t
 
-
 let rec type_of = function
   | AUnit -> TUnit
   | AInt _ -> TInt
@@ -37,7 +36,6 @@ let rec type_of_pattern env = function
     let (t2, env'') = type_of_pattern env' p2 in
     (TPair(t1, t2), env'')
 
-
 let instantiate t =
   let subst_table = Hashtbl.create 16 in
   let rec instantiate_aux t =
@@ -56,5 +54,3 @@ let instantiate t =
   in
   let tt = instantiate_aux t
   in print_string ("Instantiating type " ^ (type_to_string t) ^": "^(type_to_string tt) ^ "\n"); tt
-
-

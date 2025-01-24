@@ -2,6 +2,24 @@
 
 open Ast
 
+let debug_constraints constraints =
+  List.iter (fun (t1, t2) -> 
+    Printf.printf "Constraint: %s = %s\n" (type_to_string t1) (type_to_string t2)
+  ) constraints; constraints
+;;
+
+let infer expr def_env =
+    let rec def_to_let env = (*TODO: CHANGE IT*)
+      match env with
+      | [] -> expr
+      | (id, e)::xs -> Let(id, e, def_to_let xs)
+    in
+  Utils.type_name := 0;
+  let annotated_expr = Infer_type.annotate (def_to_let (List.rev def_env))
+  in let constrains = debug_constraints (Infer_type.collect_constrains [annotated_expr] [])
+  in let temp = Unifier.unify constrains
+  in Unifier.apply_substitution temp (Utils.type_of annotated_expr)
+
 let rec read () = 
   let line = read_line () in
   if String.ends_with ~suffix:";" line
@@ -13,10 +31,10 @@ let rec rtpl () def_env =
   let lexbuf = Lexing.from_string input in
   begin match Parser.prog Lexer.token lexbuf with
   | Expr expr ->
-    let typ = Unifier.infer expr def_env in
+    let typ = infer expr def_env in
     Printf.printf ">> Type: %s\n" (type_to_string typ); rtpl () def_env
   | Define(id, expr) -> 
-    let typed_expr = Unifier.infer expr def_env in
+    let typed_expr = infer expr def_env in
     let new_def_env = (id, expr)::def_env in
     Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string typed_expr);
     rtpl () new_def_env
