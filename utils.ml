@@ -52,5 +52,5 @@ let instantiate t =
     | TPair (left, right) -> TPair(instantiate_aux left, instantiate_aux right)
     | TPolymorphic t' -> instantiate_aux t'
   in
-  let tt = instantiate_aux t
-  in print_string ("Instantiating type " ^ (type_to_string t) ^": "^(type_to_string tt) ^ "\n"); tt
+  let tt = instantiate_aux t in 
+  (*print_string ("Instantiating type " ^ (type_to_string t) ^": "^(type_to_string tt) ^ "\n");*) tt

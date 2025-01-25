@@ -21,7 +21,7 @@
 
 %start <program> prog
 
-%left COMMA
+%right COMMA
 
 %%
 

@@ -70,18 +70,17 @@ let rec type_to_string typ =
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
   | TVar x -> Printf.sprintf "a%d" x
-  | TFun (TFun _ as f, x) -> Printf.sprintf "(%s) -> %s" (type_to_string f) (parenthesis x)
-  | TFun (f, x) -> Printf.sprintf "%s -> %s" (parenthesis f) (parenthesis x) 
-  | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis2 a) (type_to_string b)
-  | TPolymorphic t -> Printf.sprintf "Polymorphic: %s" (type_to_string t)
+  | TFun (f, x) -> Printf.sprintf "%s -> %s" 
+  (parenthesis_fun f) (parenthesis_pair x) 
+  | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis_fun a) (type_to_string b)
+  | TPolymorphic t -> Printf.sprintf "Poly %s" (type_to_string t)
 
-and parenthesis = function
-  | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")"
-  | TFun(a,b) -> "(" ^ (type_to_string (TFun(a,b))) ^ ")"
+and parenthesis_fun = function
+  | TFun _ | TPair _ as typ -> "(" ^ (type_to_string typ) ^ ")"
   | x -> type_to_string x 
 
-and parenthesis2 = function
-  | TFun(a,b) -> "(" ^ (type_to_string (TFun(a,b))) ^ ")"
+and parenthesis_pair = function
+  | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")" 
   | x -> type_to_string x 
 
 

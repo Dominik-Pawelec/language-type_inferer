@@ -3,9 +3,10 @@
 open Ast
 
 let debug_constraints constraints =
-  List.iter (fun (t1, t2) -> 
+  (*List.iter (fun (t1, t2) -> 
     Printf.printf "Constraint: %s = %s\n" (type_to_string t1) (type_to_string t2)
-  ) constraints; constraints
+  ) constraints; *)
+  constraints
 ;;
 
 let infer expr def_env =
