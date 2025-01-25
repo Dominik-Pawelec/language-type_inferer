@@ -9,6 +9,7 @@
 
 %token <int> INT
 %token <string> IDENT
+%token <string> BIGIDENT
 %token LPAREN RPAREN
 %token COMMA LEFT RIGHT
 %token FUN ARROW
@@ -16,13 +17,13 @@
 %token LET EQUAL IN
 %token IF THEN ELSE
 %token TRUE FALSE
-%token UNIT  WILDCARD
-%token EOF
-%token TINT TBOOL TUNIT TPRODUCT
+%token UNIT  WILDCARD LESS MORE
+%token TINT TBOOL TUNIT TPRODUCT TPLUS TYPE
+%token EOF 
 
 %start <program> prog
 
-%right COMMA
+%right COMMA TPRODUCT TPLUS
 
 
 %%
@@ -30,12 +31,35 @@
 prog:
     | e = mixfix; EOF { Expr (e) }
     | d = definition; EOF { d }
+    | t = type_definition; EOF { t }
     | EOF { Expr Unit }
     ;
 definition:
     | LET; x = IDENT; EQUAL; e = mixfix {Define(x, e)}
     ;
-
+type_definition:
+    | TYPE; x = IDENT; EQUAL; td = type_declaration {TypeDefine(x, [],td)}
+    | TYPE; x = IDENT; LESS; ta = type_args;MORE; EQUAL; td = type_declaration {TypeDefine(x, ta, td)}
+    ;
+type_args:
+    | x = IDENT; t = type_args {x::t}
+    | x = IDENT {[x]}
+    ;
+type_declaration:
+    | td1 = type_declaration; TPLUS; td2 = type_declaration {td1 @ td2}
+    | constructor_name = BIGIDENT; t = type_annotation {[(constructor_name, t)]}
+    ;
+type_annotation:
+    | t1 = base_type TPRODUCT t2 = type_annotation {TDProduct(t1, t2)}
+    | t = base_type {t}
+    ;
+base_type:
+    | TUNIT {TDUnit}
+    | TINT {TDInt}
+    | TBOOL {TDBool}
+    | x = IDENT {TDVar x}
+    | LPAREN t = type_annotation RPAREN {t}
+    ;
 idents:
     | x = IDENT; xs = idents { x :: xs }
     | x = IDENT { [x] }

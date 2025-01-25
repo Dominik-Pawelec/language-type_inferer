@@ -9,6 +9,8 @@ let new_type ()=
 module M = Map.Make(String)
 type env = typ M.t
 
+(*key - name of constructor, eg. Cons*)
+
 let rec type_of = function
   | AUnit -> TUnit
   | AInt _ -> TInt

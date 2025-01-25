@@ -3,11 +3,16 @@ type id = string
 type program =
   | Expr of expr 
   | Define of define
-  | TypeDefine of id * type_define
+  | TypeDefine of id * id list * type_define list
 
 and define = id * expr
 
-and type_define = id * (id * typ) list
+and type_define = id * typ_td 
+
+and typ_td = 
+  | TDUnit | TDInt | TDBool
+  | TDVar of id
+  | TDProduct of typ_td * typ_td
 
 and expr =
   | Unit | Int of int | Bool of bool
