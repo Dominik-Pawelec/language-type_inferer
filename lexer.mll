@@ -3,9 +3,12 @@
 }
 let whitespace = [' ' '\t''\n']+
 let digit = ['0'-'9']
-let signs = [^' ''\t''\n''('')'',']
+let small_sign = ['a'-'z''_']
+let big_sign = ['A'-'Z']
+let sign = small_sign | big_sign | digit
 let integer = '-'? digit+
-let identifier = signs+
+let identifier = small_sign | sign+
+let type_constructor = big_sign | sign+
 
 
 rule token =
@@ -30,7 +33,10 @@ rule token =
     | "match" {MATCH}
     | "with" {WITH}
     | "case" {CASE}
-    | "def" {DEF}
+    | "unit" {TUNIT}
+    | "int" {TINT}
+    | "bool" {TBOOL}
+    | "*" {TPRODUCT}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | identifier {IDENT (Lexing.lexeme lexbuf)}
     | eof {EOF}

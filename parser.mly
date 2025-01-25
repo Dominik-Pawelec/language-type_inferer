@@ -16,12 +16,14 @@
 %token LET EQUAL IN
 %token IF THEN ELSE
 %token TRUE FALSE
-%token UNIT  WILDCARD DEF
+%token UNIT  WILDCARD
 %token EOF
+%token TINT TBOOL TUNIT TPRODUCT
 
 %start <program> prog
 
 %right COMMA
+
 
 %%
 
@@ -31,7 +33,7 @@ prog:
     | EOF { Expr Unit }
     ;
 definition:
-    | DEF; x = IDENT; EQUAL; e = mixfix {Define(x, e)}
+    | LET; x = IDENT; EQUAL; e = mixfix {Define(x, e)}
     ;
 
 idents:

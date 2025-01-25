@@ -3,8 +3,11 @@ type id = string
 type program =
   | Expr of expr 
   | Define of define
+  | TypeDefine of id * type_define
 
 and define = id * expr
+
+and type_define = id * (id * typ) list
 
 and expr =
   | Unit | Int of int | Bool of bool
@@ -27,7 +30,7 @@ and pattern =
   | PVar of id
   | PPair of pattern * pattern
 
-type typ =
+and typ =
   | TUnit | TInt | TBool
   | TVar of int
   | TFun of typ * typ
@@ -69,11 +72,13 @@ let rec type_to_string typ =
   | TUnit -> Printf.sprintf "unit"
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
-  | TVar x -> Printf.sprintf "a%d" x
+  | TVar x -> Printf.sprintf "T%d" x
   | TFun (f, x) -> Printf.sprintf "%s -> %s" 
   (parenthesis_fun f) (parenthesis_pair x) 
   | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis_fun a) (type_to_string b)
   | TPolymorphic t -> Printf.sprintf "Poly %s" (type_to_string t)
+  (*| TCustom (t, args) -> Printf.sprintf "%s<%s >" t 
+  (List.fold_right (fun x acc -> (type_to_string x) ^", "^ acc) args "")*)
 
 and parenthesis_fun = function
   | TFun _ | TPair _ as typ -> "(" ^ (type_to_string typ) ^ ")"

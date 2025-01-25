@@ -17,7 +17,6 @@ let rec collect_constrains aexpr_ls constrains_ls =
     let fresh_type = instantiate value_type in
     let constrains_expr = collect_constrains [expr] ((type_of (AVar (id, fresh_type)), fresh_type)::constrains_ls) in
     collect_constrains rest (constrains_value @ constrains_expr)
-
   | AIf(e, t, f, typ)::rest ->
     let e_typ = type_of e in
     let t_typ = type_of t and f_typ = type_of f in
@@ -44,7 +43,7 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | _ -> failwith "wrong type annotation"
 ;;
 
-let annotate expr =
+let annotate expr _  =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env =
   match expr with
