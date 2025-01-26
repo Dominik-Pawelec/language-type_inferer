@@ -1,6 +1,7 @@
 (*RTPL: Read; Type; Print; Loop*)
 
 open Ast
+open Utils
 
 let debug_constraints constraints =
   (*List.iter (fun (t1, t2) -> 
@@ -39,5 +40,10 @@ let rec rtpl () def_env type_env =
     let new_def_env = (id, expr)::def_env in
     Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string typed_expr);
     rtpl () new_def_env type_env
-  | TypeDefine _ -> failwith "TO Implement"
+  | TypeDefine (id, args, constructors) ->
+    let new_type_env = 
+        List.fold_left (fun acc x -> M.add fst x (snd x, args, id) acc) type_env constructors
+    in 
+    Printf.printf "Defined Type: %s <%s>" id (List.fold_right (fun x acc -> x ^ ", " ^ acc) args "");
+    rtpl () def_env new_type_env 
   end

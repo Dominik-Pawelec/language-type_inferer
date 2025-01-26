@@ -10,6 +10,22 @@ module M = Map.Make(String)
 type env = typ M.t
 
 (*key - name of constructor, eg. Cons*)
+(* In environment: (name of constructor, its "shape" , TCustom(name,<args>)) *)
+(* Constructor(id, arguments) -> 
+    it annotates everything in args,
+    and then finds id in type_environment.
+    if not found, error
+    else, makes AConstructor(id, annotated_arguments, "shape", mini type environment: ("x", TVar 1)("y", TVar 2), TCustom(name,<TVar 1 TVar 2>))
+
+  AConstructor (id, annot_args, shape, type_env, typ) -> 
+      checks if sizes of annot and shape match
+      if so, transform "shape" from Shape type to Typ type
+      and then, collect constrain from each pair annot_arg, shape_elem
+      (i dont believe constraining typ is needed)
+
+    During unification, 2 custom types of args should have same name, and unify all their args
+and that's it?
+   *)
 
 let rec type_of = function
   | AUnit -> TUnit

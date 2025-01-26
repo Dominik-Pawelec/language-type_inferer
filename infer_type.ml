@@ -40,12 +40,19 @@ let rec collect_constrains aexpr_ls constrains_ls =
     List.fold_left (fun constr (_,_,aexpr') -> (collect_constrains [aexpr'] output_constrains) @constr )
       [] cases in
     collect_constrains rest (uwu)
+  | AConstrains(id, annot_args, shape, var_ls, typ)::rest ->
+    let type_shape = shape_tp_type shape var_ls in
+    let collected_annot = List.fold_left (fun acc x -> collect_constrains x acc) [] annot_args in
+    let constrain_with_shape =
+        List.fold_left2 (fun acc x y -> (type_of x, y)::acc) [] annot_args, type_shape
+    in
+    collect_constrains rest (collected_annot @ constrain_with_shape)
   | _ -> failwith "wrong type annotation"
 ;;
 
 let annotate expr _  =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
-  let rec annotate_rec expr env =
+  let rec annotate_rec expr env type_env =
   match expr with
   | Unit -> AUnit
   | Int nr -> AInt(nr, TInt)
@@ -96,6 +103,12 @@ let annotate expr _  =
     let output_type = match (List.hd annotated_cases) with
         | (_,_,x) -> type_of x   in
     AMatch(annotated_expr, annotated_cases, output_type)
+  | Constructor(id, args) ->
+    let annot_args = List.map (fun x -> annotate_rec x env type_env) args in
+    match M.find_opt id type_env with
+    | None -> failwith "undefined type constructor."
+    | Some x ->
+            AConstructor(id, annot_args, shape, mini_type_env, TCustom(name, args_as_types))
       
   in annotate_rec expr (M.empty) 
 ;;

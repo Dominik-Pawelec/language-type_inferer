@@ -7,12 +7,13 @@ type program =
 
 and define = id * expr
 
-and type_define = id * typ_td 
+and type_define = id * type_shape
 
-and typ_td = 
+and type_shape = 
   | TDUnit | TDInt | TDBool
   | TDVar of id
-  | TDProduct of typ_td * typ_td
+  | TDProduct of type_shape
+  | TDADT of id * type_shape list
 
 and expr =
   | Unit | Int of int | Bool of bool
@@ -25,6 +26,7 @@ and expr =
   | Left
   | Right
   | Match of expr * (pattern * expr) list
+  | Constructor of id * expr list
   (*typedef listab<a,b> = NIL of Unit | Cons1 of a * listab<a, b> | Cons2 of b * listab<a, b>*)
 
 and pattern =
@@ -34,6 +36,7 @@ and pattern =
   | PWildcard
   | PVar of id
   | PPair of pattern * pattern
+  | PAdtCase of id * pattern list
 
 and typ =
   | TUnit | TInt | TBool
@@ -41,6 +44,7 @@ and typ =
   | TFun of typ * typ
   | TPair of typ * typ
   | TPolymorphic of typ
+  | TADT of id * typ list
 
 type annotated_expr =
   | AUnit
@@ -55,6 +59,7 @@ type annotated_expr =
   | ALeft of typ
   | ARight of typ
   | AMatch of annotated_expr * (pattern * typ * annotated_expr) list * typ
+  | AConstructor of id * (annotated_expr list) * type_shape * (id* typ) * typ
 
 (*let rec expr_to_string expr =
   match expr with
