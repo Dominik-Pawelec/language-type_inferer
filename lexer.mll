@@ -16,7 +16,6 @@ let type_constructor = big_sign sign*
 rule token =
     parse
     | whitespace {token lexbuf}
-    | "unit"{UNIT}
     | "(" {LPAREN}
     | ")" {RPAREN}
     | "fun" {FUN} 
