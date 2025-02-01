@@ -43,7 +43,8 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AConstructor(_, annot_args, shape_ls, var_ls, _)::rest ->
     let shape_type = List.map (fun shape -> shape_to_type shape var_ls) shape_ls in
     let constrains_ = List.map2 (fun arg shape_t -> (type_of arg, shape_t)) annot_args shape_type in
-    collect_constrains rest (constrains_ls @ constrains_)
+    let args_constrains = collect_constrains annot_args [] in
+    collect_constrains rest (constrains_ls @ constrains_ @ args_constrains)
   | _ -> failwith "wrong type annotation"
 ;;
 

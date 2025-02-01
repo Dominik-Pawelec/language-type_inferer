@@ -14,7 +14,10 @@ let rec substitute id typ new_type =
   | TADT(id', args) -> TADT(id', List.map (fun x -> substitute id x new_type) args)
 ;;
 let apply_substitution subst typ =
-  List.fold_right (fun (id, t) acc -> substitute id acc t) subst typ
+    let result = List.fold_right (fun (id, t) acc -> substitute id acc t) subst typ in
+  Printf.printf "Applying substitution: %s -> %s\n"
+    (type_to_string typ) (type_to_string result);
+  result
 ;;
 
 let rec occurs id typ =
@@ -27,10 +30,8 @@ let rec occurs id typ =
   | TADT (_, args) -> List.fold_left (fun acc x -> (occurs id x) || acc) false args
 
 let rec unify_pair t1 t2 : subst =
+    Printf.printf "Unifying: %s with %s\n" (type_to_string t1) (type_to_string t2);
   match t1, t2 with
-  | (TInt as t), TVar a | (TBool as t), TVar a 
-  | TVar a, (TInt as t) | TVar a, (TBool as t) 
-  | TVar a, (TUnit as t) | (TUnit as t), TVar a  -> [(a, t)]
   | TVar a, TVar b -> if a = b then [] else [(a, TVar b)]
   | TFun(in1, out1), TFun(in2, out2) -> unify [(in1, in2);(out1, out2)]
   | TPolymorphic t, TVar x | TVar x, TPolymorphic t -> [(x, t)]

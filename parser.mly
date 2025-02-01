@@ -17,7 +17,7 @@
 %token LET EQUAL IN
 %token IF THEN ELSE
 %token TRUE FALSE
-%token UNIT  WILDCARD LESS MORE
+%token UNIT WILDCARD LESS MORE
 %token TINT TBOOL TUNIT TPRODUCT TPLUS TYPE
 %token EOF 
 
@@ -60,18 +60,27 @@ base_type:
     | TBOOL {TDBool}
     | x = IDENT {TDVar x}
     | LPAREN; t = base_type; RPAREN {t}
+    | x = IDENT; LESS; i = base_type_list ;MORE {TDADT(x,i)}
     ;
+base_type_list:
+    | x = base_type {[x]}
+    | x = base_type; COMMA; y = base_type_list {x :: y}
 idents:
     | x = IDENT; xs = idents { x :: xs }
     | x = IDENT { [x] }
     ;
-
+arg_list:
+    | x = mixfix; {[x]}
+    | x = mixfix; COMMA; args = arg_list {x :: args}
+    | {[Unit]}
+    ;
 mixfix:
     | LET; x = IDENT; EQUAL; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
     | e1 = mixfix; COMMA; e2 = mixfix {Pair(e1, e2)}
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
     | MATCH; e = expr; WITH; cases = patternmatch {Match(e, cases)}
+    | id = BIGIDENT; LPAREN; args = arg_list ; RPAREN {Constructor(id, args)}
     | x = expr { x }
     ;
 patternmatch:
