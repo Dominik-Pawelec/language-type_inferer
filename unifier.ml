@@ -11,7 +11,7 @@ let rec substitute id typ new_type =
     TFun (substitute id input new_type, substitute id output new_type)
   | TPair(a, b) -> TPair(substitute id a new_type, substitute id b new_type)
   | TPolymorphic t -> instantiate (substitute id t new_type)
-  | TCustom(id, args) -> TCustom(id, List.fold_right (fun x acc -> substitute id x new_type) args [])
+  | TADT(id', args) -> TADT(id', List.map (fun x -> substitute id x new_type) args)
 ;;
 let apply_substitution subst typ =
   List.fold_right (fun (id, t) acc -> substitute id acc t) subst typ
@@ -24,7 +24,7 @@ let rec occurs id typ =
   | TFun (u, v) -> occurs id u || occurs id v
   | TPair(a, b) -> occurs id a || occurs id b
   | TPolymorphic t -> occurs id t
-  | TCustom (_, args) -> List.fold_left (fun acc x -> (occurs id x) || acc) false args
+  | TADT (_, args) -> List.fold_left (fun acc x -> (occurs id x) || acc) false args
 
 let rec unify_pair t1 t2 : subst =
   match t1, t2 with
@@ -41,9 +41,9 @@ let rec unify_pair t1 t2 : subst =
   | TPair(a1, b1), TPair(a2, b2) -> unify [(a1, a2);(b1, b2)]
   | TPolymorphic t1, TPolymorphic t2 -> unify[(t1,t2);(TPolymorphic t1, t2); (t1, TPolymorphic t2)]
   | TPolymorphic t1, t2 | t2, TPolymorphic t1-> unify [(instantiate t1, t2)]
-  | TCustom(id1, args1), TCustom(id2, args2) when id1 = id2 && List.length args1 = List.length args2 ->
+  | TADT(id1, args1), TADT(id2, args2) when id1 = id2 && List.length args1 = List.length args2 ->
     unify (List.fold_left2 (fun acc x y -> (x,y)::acc) [] args1 args2)
-  | _, _ -> failwith ("Type error: type mismatch: " ^ (type_to_string t1) ^ ";" ^(type_to_string t2) )
+  | _, _ -> failwith ("Type error: type mismatch: " ^ (type_to_string t1) ^ "; " ^(type_to_string t2) )
 
 and unify subst =   
   match subst with

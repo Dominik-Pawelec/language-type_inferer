@@ -40,17 +40,14 @@ let rec collect_constrains aexpr_ls constrains_ls =
     List.fold_left (fun constr (_,_,aexpr') -> (collect_constrains [aexpr'] output_constrains) @constr )
       [] cases in
     collect_constrains rest (uwu)
-  | AConstrains(id, annot_args, shape, var_ls, typ)::rest ->
-    let type_shape = shape_tp_type shape var_ls in
-    let collected_annot = List.fold_left (fun acc x -> collect_constrains x acc) [] annot_args in
-    let constrain_with_shape =
-        List.fold_left2 (fun acc x y -> (type_of x, y)::acc) [] annot_args, type_shape
-    in
-    collect_constrains rest (collected_annot @ constrain_with_shape)
+  | AConstructor(_, annot_args, shape_ls, var_ls, _)::rest ->
+    let shape_type = List.map (fun shape -> shape_to_type shape var_ls) shape_ls in
+    let constrains_ = List.map2 (fun arg shape_t -> (type_of arg, shape_t)) annot_args shape_type in
+    collect_constrains rest (constrains_ls @ constrains_)
   | _ -> failwith "wrong type annotation"
 ;;
 
-let annotate expr _  =
+let annotate expr type_env  =
   let (h_table : (id, typ) Hashtbl.t) = Hashtbl.create 16 in
   let rec annotate_rec expr env type_env =
   match expr with
@@ -67,12 +64,12 @@ let annotate expr _  =
     )
   | Fun (id, expr') -> 
     let a = new_type () in
-    let aexpr = annotate_rec expr' (M.add id a env) in
+    let aexpr = annotate_rec expr' (M.add id a env) type_env in
     let t_fun = TFun(a, type_of aexpr) in
       AFun(id, aexpr, t_fun)
-  | App (expr1, expr2) -> AApp(annotate_rec expr1 env, annotate_rec expr2 env, (new_type ()))
+  | App (expr1, expr2) -> AApp(annotate_rec expr1 env type_env, annotate_rec expr2 env type_env, (new_type ()))
   | Let(id, value, expr) ->
-    let annotated_value = annotate_rec value env in
+    let annotated_value = annotate_rec value env type_env in
     let value_type = type_of annotated_value in
 
     let constraints = collect_constrains [annotated_value] [] in
@@ -81,12 +78,12 @@ let annotate expr _  =
 
     let polymorphic_type = TPolymorphic resolved_value_type in
     let updated_env = M.add id polymorphic_type env in
-    let annotated_expr = annotate_rec expr updated_env in
+    let annotated_expr = annotate_rec expr updated_env type_env in
     let expr_type = type_of annotated_expr in
 
     ALet(id, annotated_value, annotated_expr, resolved_value_type, expr_type)
- | If(e, t, f) -> AIf(annotate_rec e env, annotate_rec t env, annotate_rec f env, (new_type ()))
-  | Pair(a, b) -> APair(annotate_rec a env, annotate_rec b env)
+ | If(e, t, f) -> AIf(annotate_rec e env type_env, annotate_rec t env type_env, annotate_rec f env type_env, (new_type ()))
+  | Pair(a, b) -> APair(annotate_rec a env type_env, annotate_rec b env type_env)
   | Left -> 
     let new_var1, new_var2 = new_type (), new_type () in
     ALeft (TFun(TPair(new_var1, new_var2),new_var1))
@@ -94,22 +91,24 @@ let annotate expr _  =
     let new_var1, new_var2 = new_type (), new_type () in
     ARight (TFun(TPair(new_var1, new_var2),new_var2))
   | Match(expr, cases) ->
-    let annotated_expr = annotate_rec expr env in
+    let annotated_expr = annotate_rec expr env type_env in
     let annotated_cases =
       List.map (fun (pattern, case) -> 
         let (pattern_type, new_env) = type_of_pattern env pattern in
-        (pattern, pattern_type, (annotate_rec case new_env)))
+        (pattern, pattern_type, (annotate_rec case new_env type_env)))
         cases in
     let output_type = match (List.hd annotated_cases) with
         | (_,_,x) -> type_of x   in
     AMatch(annotated_expr, annotated_cases, output_type)
-  | Constructor(id, args) ->
-    let annot_args = List.map (fun x -> annotate_rec x env type_env) args in
+  | Constructor(id, args_ls) ->
+    let annot_args = List.map (fun x -> annotate_rec x env type_env) args_ls in
     match M.find_opt id type_env with
     | None -> failwith "undefined type constructor."
-    | Some x ->
-            AConstructor(id, annot_args, shape, mini_type_env, TCustom(name, args_as_types))
+    | Some (shape_ls, variables, type_name) ->
+        let variable_env = List.map (fun x -> (x, new_type ())) variables in
+      AConstructor(id, annot_args, shape_ls, variable_env, 
+      TADT(type_name, List.map (fun (_, typ) -> typ)variable_env))
       
-  in annotate_rec expr (M.empty) 
+  in annotate_rec expr (M.empty) type_env
 ;;
 

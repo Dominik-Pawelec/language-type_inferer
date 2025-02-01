@@ -7,12 +7,12 @@ type program =
 
 and define = id * expr
 
-and type_define = id * type_shape
+and type_define = id * type_shape list
 
 and type_shape = 
   | TDUnit | TDInt | TDBool
   | TDVar of id
-  | TDProduct of type_shape
+  | TDProduct of type_shape * type_shape
   | TDADT of id * type_shape list
 
 and expr =
@@ -36,8 +36,8 @@ and pattern =
   | PWildcard
   | PVar of id
   | PPair of pattern * pattern
-  | PAdtCase of id * pattern list
-
+(*  | PAdtCase of id * pattern list
+*)
 and typ =
   | TUnit | TInt | TBool
   | TVar of int
@@ -59,7 +59,8 @@ type annotated_expr =
   | ALeft of typ
   | ARight of typ
   | AMatch of annotated_expr * (pattern * typ * annotated_expr) list * typ
-  | AConstructor of id * (annotated_expr list) * type_shape * (id* typ) * typ
+  | AConstructor of id * (annotated_expr list) * type_shape list * (id * typ)list * typ
+
 
 (*let rec expr_to_string expr =
   match expr with
@@ -87,8 +88,8 @@ let rec type_to_string typ =
   (parenthesis_fun f) (parenthesis_pair x) 
   | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis_fun a) (type_to_string b)
   | TPolymorphic t -> Printf.sprintf "Poly %s" (type_to_string t)
-  (*| TCustom (t, args) -> Printf.sprintf "%s<%s >" t 
-  (List.fold_right (fun x acc -> (type_to_string x) ^", "^ acc) args "")*)
+  | TADT (t, args) -> Printf.sprintf "%s<%s >" t 
+  (List.fold_right (fun x acc -> (type_to_string x) ^", "^ acc) args "")
 
 and parenthesis_fun = function
   | TFun _ | TPair _ as typ -> "(" ^ (type_to_string typ) ^ ")"

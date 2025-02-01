@@ -47,18 +47,19 @@ type_args:
     ;
 type_declaration:
     | td1 = type_declaration; TPLUS; td2 = type_declaration {td1 @ td2}
-    | constructor_name = BIGIDENT; t = type_annotation {[(constructor_name, t)]}
+    | constructor_name = BIGIDENT; t = type_shape{[(constructor_name, t)]}
     ;
-type_annotation:
-    | t1 = base_type TPRODUCT t2 = type_annotation {TDProduct(t1, t2)}
-    | t = base_type {t}
-    ;
+type_shape:
+    | b = base_type {[b]}
+    | t1 = type_shape; TPRODUCT; t2 = type_shape {t1 @ t2}
+    | {[]}
+
 base_type:
     | TUNIT {TDUnit}
     | TINT {TDInt}
     | TBOOL {TDBool}
     | x = IDENT {TDVar x}
-    | LPAREN t = type_annotation RPAREN {t}
+    | LPAREN; t = base_type; RPAREN {t}
     ;
 idents:
     | x = IDENT; xs = idents { x :: xs }
