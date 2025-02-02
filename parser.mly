@@ -64,7 +64,7 @@ base_type:
     ;
 base_type_list:
     | x = base_type {[x]}
-    | x = base_type; COMMA; y = base_type_list {x :: y}
+    | x = base_type; y = base_type_list {x :: y}
 idents:
     | x = IDENT; xs = idents { x :: xs }
     | x = IDENT { [x] }

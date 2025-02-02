@@ -27,7 +27,6 @@ and expr =
   | Right
   | Match of expr * (pattern * expr) list
   | Constructor of id * expr list
-  (*typedef listab<a,b> = NIL of Unit | Cons1 of a * listab<a, b> | Cons2 of b * listab<a, b>*)
 
 and pattern =
   | PUnit
@@ -62,22 +61,6 @@ type annotated_expr =
   | AConstructor of id * (annotated_expr list) * type_shape list * (id * typ)list * typ
 
 
-(*let rec expr_to_string expr =
-  match expr with
-  | Unit -> Printf.sprintf "Unit"
-  | Int nr -> Printf.sprintf "%d" nr
-  | Bool b -> let text = if b then "true" else "false" in Printf.sprintf "%s" text
-  | Var id -> Printf.sprintf "%s" id
-  | Fun(id, expr') -> Printf.sprintf "%s -> %s" id (expr_to_string expr')
-  | App(func, arg) -> Printf.sprintf "%s %s" (expr_to_string func) (expr_to_string arg)
-  | Let(id, expr1, expr2) -> 
-    Printf.sprintf "let %s := %s in %s" id (expr_to_string expr1) (expr_to_string expr2)
-  | If(expr1, expr2, expr3) -> 
-    Printf.sprintf "if %s then %s else %s" (expr_to_string expr1) (expr_to_string expr2) (expr_to_string expr3)
-  | Pair(e1, e2) -> Printf.sprintf "(%s, %s)" (expr_to_string e1) (expr_to_string e2)
-  | Left -> "left"
-  | Right -> "right"*)
-  ;;
 let rec type_to_string typ =
   match typ with
   | TUnit -> Printf.sprintf "unit"
@@ -87,9 +70,9 @@ let rec type_to_string typ =
   | TFun (f, x) -> Printf.sprintf "%s -> %s" 
   (parenthesis_fun f) (parenthesis_pair x) 
   | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis_fun a) (type_to_string b)
-  | TPolymorphic t -> Printf.sprintf "Poly %s" (type_to_string t)
-  | TADT (t, args) -> Printf.sprintf "%s<%s >" t 
-  (List.fold_right (fun x acc -> (type_to_string x) ^", "^ acc) args "")
+  | TPolymorphic t -> Printf.sprintf ".%s" (type_to_string t)
+  | TADT (t, args) -> Printf.sprintf "%s %s" t 
+  (print_type_args args)
 
 and parenthesis_fun = function
   | TFun _ | TPair _ as typ -> "(" ^ (type_to_string typ) ^ ")"
@@ -99,6 +82,13 @@ and parenthesis_pair = function
   | TPair(a,b) -> "(" ^ (type_to_string (TPair(a,b))) ^ ")" 
   | x -> type_to_string x 
 
-
+and print_type_args = function
+  | [] -> ""
+  | x -> 
+    let rec print_inner_type_args = function
+        | [x] -> type_to_string x
+        | x :: xs -> type_to_string x ^ ", " ^ (print_inner_type_args xs)
+        | _ -> failwith "absurd"
+    in "<" ^ (print_inner_type_args x) ^ ">"
 
 
