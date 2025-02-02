@@ -55,7 +55,7 @@ let rec type_of_pattern env type_env = function
     | Some (shapes, variables, type_name) ->
             print_string ((string_of_int (List.length args)) ^ "=?" ^ (string_of_int (List.length shapes)));
         let args_shape =
-          List.combine args shapes (*FIX: for come reason sometimes args is 1 smaller than I anticipate*)
+          List.combine args shapes 
         in
         let specify_variables = retrieve_vars args_shape variables [] env type_env in
         let variable_env = List.map(fun x ->

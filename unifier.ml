@@ -43,7 +43,7 @@ let rec unify_pair t1 t2 : subst =
   | TPolymorphic t1, TPolymorphic t2 -> unify[(t1,t2);(TPolymorphic t1, t2); (t1, TPolymorphic t2)]
   | TPolymorphic t1, t2 | t2, TPolymorphic t1-> unify [(instantiate t1, t2)]
   | TADT(id1, args1), TADT(id2, args2) when id1 = id2 && List.length args1 = List.length args2 ->
-    unify (List.fold_left2 (fun acc x y -> (x,y)::acc) [] args1 args2)
+    unify (List.combine args1 args2)
   | _, _ -> failwith ("Type error: type mismatch: " ^ (type_to_string t1) ^ "; " ^(type_to_string t2) )
 
 and unify subst =   
