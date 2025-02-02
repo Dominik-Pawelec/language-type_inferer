@@ -16,14 +16,14 @@
 %token MATCH WITH CASE
 %token LET EQUAL IN
 %token IF THEN ELSE
-%token TRUE FALSE
+%token TRUE FALSE DOT
 %token UNIT WILDCARD LESS MORE
 %token TINT TBOOL TUNIT TPRODUCT TPLUS TYPE
 %token EOF 
 
 %start <program> prog
 
-%right COMMA TPRODUCT TPLUS
+%right COMMA TPLUS
 
 
 %%
@@ -51,8 +51,8 @@ type_declaration:
     ;
 type_shape:
     | b = base_type {[b]}
-    | t1 = type_shape; TPRODUCT; t2 = type_shape {t1 @ t2}
-    | {[]}
+    | b = base_type; TPRODUCT; t2 = type_shape {b :: t2}
+    | {[TDUnit]}
 
 base_type:
     | TUNIT {TDUnit}
@@ -71,7 +71,7 @@ idents:
     ;
 arg_list:
     | x = mixfix; {[x]}
-    | x = mixfix; COMMA; args = arg_list {x :: args}
+    | x = arg_list; DOT; args = arg_list {x @ args}
     | {[Unit]}
     ;
 mixfix:
@@ -80,7 +80,6 @@ mixfix:
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
     | MATCH; e = expr; WITH; cases = patternmatch {Match(e, cases)}
-    | id = BIGIDENT; LPAREN; args = arg_list ; RPAREN {Constructor(id, args)}
     | x = expr { x }
     ;
 patternmatch:
@@ -95,8 +94,13 @@ pattern:
     | FALSE { PBool false }
     | x = IDENT { PVar x }
     | e1 = pattern; COMMA; e2 = pattern {PPair(e1, e2)}
+    | name = BIGIDENT; LPAREN; ps = pattern_list;RPAREN {PConstructor(name, ps)}
     | LPAREN; p = pattern; RPAREN {p}
     ; 
+pattern_list:
+    | p = pattern {[p]}
+    | p = pattern; DOT;  ps = pattern_list {p :: ps}
+    | {[PUnit]}
 expr:
     | e = app { e }
     ;
@@ -114,4 +118,6 @@ base:
     | FALSE { Bool false }
     | x = IDENT { Var x } 
     | LPAREN; e = mixfix; RPAREN { e }
+    | id = BIGIDENT; LPAREN; args = arg_list ; RPAREN {Constructor(id, args)}
+
     ;

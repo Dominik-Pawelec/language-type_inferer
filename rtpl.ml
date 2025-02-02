@@ -42,8 +42,8 @@ let rec rtpl () def_env type_env =
     rtpl () new_def_env type_env
   | TypeDefine (id, args, constructors) ->
     let new_type_env = 
-        List.fold_left (fun acc (name, shape) -> M.add name (shape, args, id) acc) type_env constructors 
+        List.fold_left (fun acc (name, shape) -> print_int (List.length shape) ;M.add name (shape, args, id) acc) type_env constructors 
     in 
-    Printf.printf "Defined Type: %s <%s>\n" id (List.fold_right (fun x acc -> x ^ " " ^ acc) args "");
+    Printf.printf "Defined Type: %s <%s> \n" id (List.fold_right (fun x acc -> x ^ " " ^ acc) args "" );
     rtpl () def_env (new_type_env)
   end

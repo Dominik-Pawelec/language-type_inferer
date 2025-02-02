@@ -35,8 +35,8 @@ and pattern =
   | PWildcard
   | PVar of id
   | PPair of pattern * pattern
-(*  | PAdtCase of id * pattern list
-*)
+  | PConstructor of id * pattern list
+
 and typ =
   | TUnit | TInt | TBool
   | TVar of int

@@ -42,6 +42,7 @@ rule token =
     | "bool" {TBOOL}
     | "|" {TPLUS}
     | "*" {TPRODUCT}
+    | "." {DOT}
     | integer {INT (int_of_string (Lexing.lexeme lexbuf))}
     | big_identifier {BIGIDENT (Lexing.lexeme lexbuf)}
     | identifier {IDENT (Lexing.lexeme lexbuf)}

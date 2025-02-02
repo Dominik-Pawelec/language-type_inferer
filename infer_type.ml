@@ -43,6 +43,7 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AConstructor(_, annot_args, shape_ls, var_ls, _)::rest ->
     let shape_type = List.map (fun shape -> shape_to_type shape var_ls) shape_ls in
     let constrains_ = List.map2 (fun arg shape_t -> (type_of arg, shape_t)) annot_args shape_type in
+    print_endline "<|:)";
     let args_constrains = collect_constrains annot_args [] in
     collect_constrains rest (constrains_ls @ constrains_ @ args_constrains)
   | _ -> failwith "wrong type annotation"
@@ -95,18 +96,20 @@ let annotate expr type_env  =
     let annotated_expr = annotate_rec expr env type_env in
     let annotated_cases =
       List.map (fun (pattern, case) -> 
-        let (pattern_type, new_env) = type_of_pattern env pattern in
+        let (pattern_type, new_env) = type_of_pattern env type_env pattern in
         (pattern, pattern_type, (annotate_rec case new_env type_env)))
         cases in
     let output_type = match (List.hd annotated_cases) with
         | (_,_,x) -> type_of x   in
     AMatch(annotated_expr, annotated_cases, output_type)
   | Constructor(id, args_ls) ->
-    let annot_args = List.map (fun x -> annotate_rec x env type_env) args_ls in
     match M.find_opt id type_env with
     | None -> failwith "undefined type constructor."
-    | Some (shape_ls, variables, type_name) ->
-        let variable_env = List.map (fun x -> (x, new_type ())) variables in
+    | Some (shape_ls, variables, type_name) ->      
+      let annot_args = List.map (fun x -> annotate_rec x env type_env) args_ls in
+      List.iter (fun x -> print_string (type_to_string (type_of x))) annot_args;
+      let variable_env = List.map (fun x -> (x, new_type ())) variables in
+      print_int (List.length annot_args); print_int (List.length shape_ls); print_string "aaa";
       AConstructor(id, annot_args, shape_ls, variable_env, 
       TADT(type_name, List.map (fun (_, typ) -> typ)variable_env))
       
