@@ -1,6 +1,68 @@
 open Ast
 open Utils
 
+let rec type_of_pattern env type_env = function
+  | PUnit -> (TUnit, env)
+  | PBool _ -> (TBool, env)
+  | PInt _ -> (TInt, env)
+  | PWildcard -> (new_type (), env)
+  | PVar id -> 
+    let t = new_type () in
+    (t, M.add id t env)
+  | PPair (p1, p2) -> 
+    let (t1, env') = type_of_pattern env type_env p1 in
+    let (t2, env'') = type_of_pattern env' type_env p2 in
+    (TPair(t1, t2), env'')
+| PConstructor(id, args) ->
+    (match M.find_opt id type_env with
+     | None -> failwith ("Undefined type constructor: " ^ id)
+     | Some (shapes, variables, type_name) ->
+        if List.length args <> List.length shapes then
+          failwith "Pattern's argument number mismatch."
+        else
+          let variable_env = List.map (fun v -> (v, new_type ())) variables in
+          let env_map = List.fold_left (fun acc (v, t) -> M.add v t acc) env variable_env in
+          let shape_types = List.map (fun s -> shape_to_type s variable_env) shapes in
+          let updated_env, collected_constraints =
+            List.fold_left2
+              (fun (env_acc, constraints) pat shape_t ->
+                let inferred_t, new_env = type_of_pattern env_acc type_env pat in
+                ((M.merge (fun _ v1 v2 -> match v1, v2 with
+                    | Some t, _ | _, Some t -> Some t
+                    | _ -> None) env_acc new_env),
+                (inferred_t, shape_t) :: constraints))
+              (env_map, []) args shape_types
+          in
+
+          let substitutions = Unifier.unify collected_constraints in
+          let final_env = M.map (Unifier.apply_substitution substitutions) updated_env in
+          let output_type = TADT(type_name, List.map snd variable_env) in
+          let final_output_type = Unifier.apply_substitution substitutions output_type in
+          (final_output_type, final_env)
+    )
+
+and retrieve_vars args_shape variables acc env type_env =
+  match variables with
+  | [] -> acc
+  | x :: xs ->
+    let matches = List.filter (fun (_, td) -> td = TDVar x) args_shape in
+    match matches with
+    | [] -> retrieve_vars args_shape xs acc env type_env
+    | [(arg, _)] ->  
+      begin match List.assoc_opt x acc with
+      | None -> 
+        let inferred_type, _ = type_of_pattern env type_env arg in
+        retrieve_vars args_shape xs ((x, inferred_type) :: acc) env type_env
+      | Some prev_type ->
+        let inferred_type, _ = type_of_pattern env type_env arg in
+        if prev_type <> inferred_type then failwith "Type mismatch in pattern matching"
+        else retrieve_vars args_shape xs acc env type_env
+      end
+    | _ -> failwith "Unexpected multiple matches for a single type variable"
+
+
+
+
 let rec collect_constrains aexpr_ls constrains_ls =
   match aexpr_ls with
   | [] -> constrains_ls
@@ -43,7 +105,6 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AConstructor(_, annot_args, shape_ls, var_ls, _)::rest ->
     let shape_type = List.map (fun shape -> shape_to_type shape var_ls) shape_ls in
     let constrains_ = List.map2 (fun arg shape_t -> (type_of arg, shape_t)) annot_args shape_type in
-    print_endline "<|:)";
     let args_constrains = collect_constrains annot_args [] in
     collect_constrains rest (constrains_ls @ constrains_ @ args_constrains)
   | _ -> failwith "wrong type annotation"
@@ -82,9 +143,9 @@ let annotate expr type_env  =
     let updated_env = M.add id polymorphic_type env in
     let annotated_expr = annotate_rec expr updated_env type_env in
     let expr_type = type_of annotated_expr in
-
+    (*to fix some recurence types(like fold_left): make it run twice but output type is the same as id?*)
     ALet(id, annotated_value, annotated_expr, resolved_value_type, expr_type)
- | If(e, t, f) -> AIf(annotate_rec e env type_env, annotate_rec t env type_env, annotate_rec f env type_env, (new_type ()))
+| If(e, t, f) -> AIf(annotate_rec e env type_env, annotate_rec t env type_env, annotate_rec f env type_env, (new_type ()))
   | Pair(a, b) -> APair(annotate_rec a env type_env, annotate_rec b env type_env)
   | Left -> 
     let new_var1, new_var2 = new_type (), new_type () in
@@ -107,9 +168,7 @@ let annotate expr type_env  =
     | None -> failwith "undefined type constructor."
     | Some (shape_ls, variables, type_name) ->      
       let annot_args = List.map (fun x -> annotate_rec x env type_env) args_ls in
-      List.iter (fun x -> print_string (type_to_string (type_of x))) annot_args;
       let variable_env = List.map (fun x -> (x, new_type ())) variables in
-      print_int (List.length annot_args); print_int (List.length shape_ls); print_string "aaa";
       AConstructor(id, annot_args, shape_ls, variable_env, 
       TADT(type_name, List.map (fun (_, typ) -> typ)variable_env))
       
