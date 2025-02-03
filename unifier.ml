@@ -33,7 +33,8 @@ let rec unify_pair t1 t2 : subst =
   | TFun(in1, out1), TFun(in2, out2) -> unify [(in1, in2);(out1, out2)]
   | TPolymorphic t, TVar x | TVar x, TPolymorphic t -> [(x, t)]
   | t, TVar x | TVar x, t -> 
-    if occurs x t then failwith "circular definition"
+    if occurs x t then failwith
+  (Printf.sprintf "Circular definition: %s appears in %s\n" (type_to_string (TVar x)) (type_to_string t))
     else [(x, t)]
   | TInt, TInt | TBool, TBool | TUnit , TUnit -> []
   | TPair(a1, b1), TPair(a2, b2) -> unify [(a1, a2);(b1, b2)]

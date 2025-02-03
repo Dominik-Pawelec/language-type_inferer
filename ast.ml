@@ -66,7 +66,7 @@ let rec type_to_string typ =
   | TUnit -> Printf.sprintf "unit"
   | TInt -> Printf.sprintf "int"
   | TBool -> Printf.sprintf "bool" 
-  | TVar x -> Printf.sprintf "T%d" x
+  | TVar x -> Printf.sprintf "t%d" x
   | TFun (f, x) -> Printf.sprintf "%s -> %s" 
   (parenthesis_fun f) (parenthesis_pair x) 
   | TPair(a, b) -> Printf.sprintf "%s * %s" (parenthesis_fun a) (type_to_string b)
