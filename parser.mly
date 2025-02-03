@@ -97,6 +97,7 @@ pattern:
     | x = IDENT { PVar x }
     | e1 = pattern; COMMA; e2 = pattern {PPair(e1, e2)}
     | name = BIGIDENT; LPAREN; ps = pattern_list;RPAREN {PConstructor(name, ps)}
+    | name = BIGIDENT {PConstructor(name, [PUnit])}
     | LPAREN; p = pattern; RPAREN {p}
     ; 
 pattern_list:
@@ -121,5 +122,6 @@ base:
     | x = IDENT { Var x } 
     | LPAREN; e = mixfix; RPAREN { e }
     | id = BIGIDENT; LPAREN; args = arg_list ; RPAREN {Constructor(id, args)}
+    | id = BIGIDENT {Constructor(id, [Unit])}
 
     ;
