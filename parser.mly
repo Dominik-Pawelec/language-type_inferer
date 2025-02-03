@@ -36,6 +36,7 @@ prog:
     ;
 definition:
     | LET; x = IDENT; EQUAL; e = mixfix {Define(x, e)}
+    | LET; x = IDENT;f = idents; EQUAL; e = mixfix {Define(x, (create_function f e))}
     ;
 type_definition:
     | TYPE; x = IDENT; EQUAL; td = type_declaration {TypeDefine(x, [],td)}
@@ -76,6 +77,7 @@ arg_list:
     ;
 mixfix:
     | LET; x = IDENT; EQUAL; e1 = mixfix; IN; e2 = mixfix { Let(x,e1,e2) }
+    | LET; x = IDENT;f = idents; EQUAL; e1 = mixfix; IN; e2 = mixfix {Let(x, (create_function f e1), e2)}
     | e1 = mixfix; COMMA; e2 = mixfix {Pair(e1, e2)}
     | FUN; xs = idents; ARROW; e = mixfix { create_function xs e }
     | IF; e = expr; THEN; t = mixfix; ELSE; f = mixfix {If(e, t, f)}
