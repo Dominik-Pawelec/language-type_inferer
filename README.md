@@ -4,7 +4,7 @@
 This project implements Type Inference algorithm for a simple functional language.
 
 ## Features of Language:
-> Basic types: unit, int, bool
+Basic types: unit, int, bool
    
 
     > ();
@@ -14,7 +14,7 @@ This project implements Type Inference algorithm for a simple functional languag
     > false;
     >> Type: bool
 
-> Functions and pairs
+Functions and pairs
 
     > fun x y -> x;
     >> Type: t0 -> t1 -> t0
@@ -23,14 +23,14 @@ This project implements Type Inference algorithm for a simple functional languag
     > (((),false),20);
     >> Type: (unit * bool) * int
 
-> Pattern matching:
+Pattern matching:
 
     > fun x -> match x with
     case (10,_) -> false
     case _ -> true;
     >> Type: (int * t1) -> bool
 
-> Let (allowing for polymorphic types) and if:
+Let (allowing for polymorphic types) and if:
 
     > let id x = x;
     Defined id of Type: .t1 -> t1
@@ -38,7 +38,7 @@ This project implements Type Inference algorithm for a simple functional languag
     >> Type: int * bool
     > fun x -> if x then 10 else 20;
     >> Type: bool -> int
-> Algebraic Data Types:
+Algebraic Data Types:
 
     > type list<a> = Nil | Cons a * list<a>;
     Defined Type: list <a > 
