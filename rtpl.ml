@@ -29,6 +29,7 @@ let rec read () =
     else line ^ " " ^ (read ())
 let rec rtpl () def_env type_env =
   Printf.printf "> ";
+  try
   let input = read () in
   let lexbuf = Lexing.from_string input in
   begin match Parser.prog Lexer.token lexbuf with
@@ -47,3 +48,6 @@ let rec rtpl () def_env type_env =
     Printf.printf "Defined Type: %s <%s> \n" id (List.fold_right (fun x acc -> x ^ " " ^ acc) args "" );
     rtpl () def_env (new_type_env)
   end
+  with 
+  | Failure msg -> print_endline  msg; rtpl () def_env type_env
+  | Parsing.Parse_error -> print_string "Syntax error.\n"; rtpl () def_env type_env
