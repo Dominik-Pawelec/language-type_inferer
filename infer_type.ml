@@ -13,7 +13,7 @@ let rec type_of_pattern env type_env = function
     let (t1, env') = type_of_pattern env type_env p1 in
     let (t2, env'') = type_of_pattern env' type_env p2 in
     (TPair(t1, t2), env'')
-| PConstructor(id, args) ->
+ | PConstructor(id, args) ->
     (match M.find_opt id type_env with
      | None -> failwith ("Undefined type constructor: " ^ id)
      | Some (shapes, variables, type_name) ->
@@ -40,26 +40,6 @@ let rec type_of_pattern env type_env = function
           let final_output_type = Unifier.apply_substitution substitutions output_type in
           (final_output_type, final_env)
     )
-
-and retrieve_vars args_shape variables acc env type_env =
-  match variables with
-  | [] -> acc
-  | x :: xs ->
-    let matches = List.filter (fun (_, td) -> td = TDVar x) args_shape in
-    match matches with
-    | [] -> retrieve_vars args_shape xs acc env type_env
-    | [(arg, _)] ->  
-      begin match List.assoc_opt x acc with
-      | None -> 
-        let inferred_type, _ = type_of_pattern env type_env arg in
-        retrieve_vars args_shape xs ((x, inferred_type) :: acc) env type_env
-      | Some prev_type ->
-        let inferred_type, _ = type_of_pattern env type_env arg in
-        if prev_type <> inferred_type then failwith "Type mismatch in pattern matching"
-        else retrieve_vars args_shape xs acc env type_env
-      end
-    | _ -> failwith "Unexpected multiple matches for a single type variable"
-
 
 
 
@@ -139,12 +119,22 @@ let annotate expr type_env  =
     let substitutions = Unifier.unify constraints in
     let resolved_value_type = Unifier.apply_substitution substitutions value_type in
 
+    let updated_env = M.add id resolved_value_type env in
+
+    (*to fix some recurence types(like fold_left): make it run twice but output type is the same as id?*)
+    let annotated_value = annotate_rec value updated_env type_env in
+    let value_type = type_of annotated_value in
+
+    let constraints = collect_constrains [annotated_value] [] in
+    let substitutions = Unifier.unify constraints in
+    let resolved_value_type = Unifier.apply_substitution substitutions value_type in
+
     let polymorphic_type = TPolymorphic resolved_value_type in
     let updated_env = M.add id polymorphic_type env in
     let annotated_expr = annotate_rec expr updated_env type_env in
     let expr_type = type_of annotated_expr in
-    (*to fix some recurence types(like fold_left): make it run twice but output type is the same as id?*)
-    ALet(id, annotated_value, annotated_expr, resolved_value_type, expr_type)
+    
+   ALet(id, annotated_value, annotated_expr, resolved_value_type, expr_type)
 | If(e, t, f) -> AIf(annotate_rec e env type_env, annotate_rec t env type_env, annotate_rec f env type_env, (new_type ()))
   | Pair(a, b) -> APair(annotate_rec a env type_env, annotate_rec b env type_env)
   | Left -> 

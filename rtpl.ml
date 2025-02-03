@@ -36,7 +36,7 @@ let rec rtpl () def_env type_env =
     let typ = infer expr def_env type_env in
     Printf.printf ">> Type: %s\n" (type_to_string typ); rtpl () def_env type_env
   | Define(id, expr) -> 
-    let typed_expr = infer expr def_env type_env in
+    let typed_expr = infer (Let(id,expr,Var(id))) def_env type_env in
     let new_def_env = (id, expr)::def_env in
     Printf.printf "Defined %s of Type: %s\n" (id) (type_to_string typed_expr);
     rtpl () new_def_env type_env
