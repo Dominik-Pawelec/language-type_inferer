@@ -51,3 +51,5 @@ let rec rtpl () def_env type_env =
   with 
   | Failure msg -> print_endline  msg; rtpl () def_env type_env
   | Parsing.Parse_error -> print_string "Syntax error.\n"; rtpl () def_env type_env
+  | _ -> print_string "Syntax error,\n"; rtpl() def_env type_env
+  

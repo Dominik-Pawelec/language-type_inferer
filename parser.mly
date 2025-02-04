@@ -5,6 +5,12 @@
     match input_list with
     | [] -> e
     | x:: xs -> Fun(x, create_function xs e)
+
+    let rec construct_TDProduct x =
+    match x with
+    | [t] -> t
+    | x::xs -> TDProduct(x, construct_TDProduct xs)
+    | _ -> failwith "absurd"
 %}
 
 %token <int> INT
@@ -53,6 +59,7 @@ type_declaration:
 type_shape:
     | b = base_type {[b]}
     | b = base_type; TPRODUCT; t2 = type_shape {b :: t2}
+    | LPAREN; s = type_shape; RPAREN {[construct_TDProduct s]}
     | {[TDUnit]}
 
 base_type:
@@ -60,7 +67,6 @@ base_type:
     | TINT {TDInt}
     | TBOOL {TDBool}
     | x = IDENT {TDVar x}
-    | LPAREN; t = base_type; RPAREN {t}
     | x = IDENT; LESS; i = base_type_list ;MORE {TDADT(x,i)}
     ;
 base_type_list:

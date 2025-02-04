@@ -62,9 +62,10 @@ let rec collect_constrains aexpr_ls constrains_ls =
   | AIf(e, t, f, typ)::rest ->
     let e_typ = type_of e in
     let t_typ = type_of t and f_typ = type_of f in
+    let e_constrains = collect_constrains [e] constrains_ls in
     let t_constrains = collect_constrains [t] constrains_ls in
     let f_constrains = collect_constrains [f] constrains_ls in
-    collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains)
+    collect_constrains rest ((e_typ, TBool)::(t_typ, typ)::(f_typ, typ):: t_constrains @ f_constrains @ e_constrains)
   | APair(a, b)::rest -> collect_constrains (a::b::rest) constrains_ls
   | ALeft(TFun(TPair(x, _), out))::rest ->  
     collect_constrains rest ((x, out)::constrains_ls) 
