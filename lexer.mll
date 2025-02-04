@@ -31,8 +31,6 @@ rule token =
     | "true" {TRUE}
     | "false" {FALSE}
     | "," {COMMA}
-    | "left" {LEFT}
-    | "right" {RIGHT}
     | "match" {MATCH}
     | "with" {WITH}
     | "case" {CASE}

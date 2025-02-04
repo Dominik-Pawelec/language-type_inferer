@@ -23,8 +23,6 @@ and expr =
   | Let of id * expr * expr
   | If of expr * expr * expr
   | Pair of expr * expr
-  | Left
-  | Right
   | Match of expr * (pattern * expr) list
   | Constructor of id * expr list
 
@@ -47,16 +45,14 @@ and typ =
 
 type annotated_expr =
   | AUnit
-  | AInt of int * typ
-  | ABool of bool * typ
+  | AInt 
+  | ABool
   | AVar of id * typ
   | AFun of id * annotated_expr * typ
   | AApp of annotated_expr * annotated_expr * typ
   | ALet of id * annotated_expr * annotated_expr * typ * typ
   | AIf of annotated_expr * annotated_expr * annotated_expr * typ
   | APair of annotated_expr * annotated_expr
-  | ALeft of typ
-  | ARight of typ
   | AMatch of annotated_expr * (pattern * typ * annotated_expr) list * typ
   | AConstructor of id * (annotated_expr list) * type_shape list * (id * typ)list * typ
 
