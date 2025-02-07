@@ -53,13 +53,17 @@ Algebraic Data Types:
 
 
 ## Usage
-To run RIPL (Read Infer Print Loop) you need to first compile project using **dune**:
+To run RTPL (Read Type Print Loop) you need to first compile project using **dune**:
 
     dune build
 
-Then run RIPL with command:
+Then run RTPL with command:
 
     _build/default/main.exe 
+
+or if you have rlwrap installed:
+
+    rlwrap _build/default/main.exe
 
  
 
